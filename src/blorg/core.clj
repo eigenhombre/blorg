@@ -1,5 +1,6 @@
 (ns blorg.core
   (:require [blorg.util :refer [pluralize]]
+            [blorg.watcher :refer [start-watcher]]
             [clojure.java.shell :refer [sh]]))
 
 
@@ -34,17 +35,32 @@
   files)
 
 
+(defn watch-directories []
+  (start-watcher ["/Users/jacobsen/Dropbox/org"
+                  "/Users/jacobsen/Programming/Lisp/Clojure/blorg"]
+                 (comp announce-file-changes
+                       display-file-changes
+                       handle-changed-files)))
+
+
+
+(defn wait-forever [] (while true (Thread/sleep 1000)))
+
+
+(defn -main [& _]
+  (watch-directories)
+  (wait-forever))
+
+
+;; REPL conveniences:
+
+
 (defonce watch-atom (atom nil))
 
 
 (defn watcher-on []
   (when-not @watch-atom
-    (reset! watch-atom
-            (start-watcher ["/Users/jacobsen/Dropbox/org"
-                            "/Users/jacobsen/Programming/Lisp/Clojure/blorg"]
-                           (comp announce-file-changes
-                                 display-file-changes
-                                 handle-changed-files)))))
+    (reset! watch-atom (watch-directories))))
 
 (defn watcher-off []
   (when @watch-atom
@@ -52,10 +68,10 @@
     (reset! watch-atom nil)))
 
 
+(comment
+
 (watcher-on)
 
-
-(comment
 (watcher-off)
 
-  )
+)

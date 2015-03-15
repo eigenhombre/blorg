@@ -4,6 +4,15 @@
 
 Work in progress.  Protective eyewear required.
 
+* Goal
+
+To provide a Jekyll-like experience, but using org-mode as the primary
+markup language, and using something sane for templating and styling.
+
+* Done / TODO
+
+See [[https://github.com/eigenhombre/blorg/issues][issues]].
+
 * License
 
 Copyright (c) 2015 John Jacobsen.  MIT license.
