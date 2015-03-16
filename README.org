@@ -11,7 +11,7 @@ markup language, and using something sane for templating and styling.
 
 * Work Done / To Do
 
-See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q%3Dis%253Aissue%2Bis%253Aclosed][completed issues]].
+See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q=is%3Aissue+is%3Aclosed][completed issues]].
 
 * License
 
