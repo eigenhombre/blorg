@@ -6,7 +6,7 @@ Work in progress.  Protective eyewear required.
 
 * Goal
 
-To provide a Jekyll-like experience, but using org-mode as the primary
+To provide a Jekyll-like experience, but using Org Mode as the primary
 markup language, and using something "sane" (for some value of sane)
 for templating and styling.
 
