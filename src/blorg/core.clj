@@ -2,7 +2,8 @@
   (:require [blorg.util :refer [pluralize]]
             [blorg.watcher :refer [start-watcher]]
             [clojure.java.io :as io]
-            [clojure.java.shell :refer [sh]]))
+            [clojure.java.shell :refer [sh]]
+            [hiccup.core :refer [html]]))
 
 
 (defn say [s]
@@ -46,6 +47,12 @@
   (.substring s 0 (.lastIndexOf s ".")))
 
 
+(defn- stripdir [s]
+  (.substring s
+              (inc (.lastIndexOf s "/"))
+              (count s)))
+
+
 (defn- target-file-name [fname]
   (str output-dir "/" (stripext (.getName (io/file fname))) ".html"))
 
@@ -53,22 +60,58 @@
 (defn pre-ify [s] (format "<pre>%s</pre>" s))
 
 
-(defn handle-changed-files [files]
-  (doseq [f files]
-    (let [html-name (target-file-name f)
-          output-contents (-> f slurp pre-ify)]
-      (println f "->" html-name)
-      (spit html-name output-contents)))
-  files)
-
-
-(defn all-blog-files []
+(defn all-org-files [& [filter-name-regex]]
   (->> blog-dir
        io/file
        .listFiles
        (remove #(.startsWith (.getName %) "."))
        (map #(.getAbsolutePath %))
-       (filter #(.endsWith % ".org"))))
+       (filter #(if filter-name-regex
+                  (re-find filter-name-regex %)
+                  true))
+       (filter #(.endsWith % ".org"))
+       reverse))
+
+
+(def all-blog-posts (partial all-org-files #"\d{4}-\d\d-\d\d-"))
+
+
+(defn extract-title-from-contents [s]
+  (->> s
+       (re-find #"\#\+TITLE: (.+)")
+       second))
+
+
+(defn make-links []
+  (html [:ul
+         (for [f (all-blog-posts)
+               :let [link (-> f target-file-name stripdir)
+                     extracted-title (-> f slurp extract-title-from-contents)
+                     title (if extracted-title
+                             extracted-title
+                             (stripdir f))]]
+           [:li [:a {:href link} title]])]))
+
+
+(defn prepare-html [f is-index?]
+  (let [contents (-> f slurp pre-ify)]
+    (if-not is-index?
+      contents
+      (str contents (make-links)))))
+
+
+(defn handle-changed-files [files]
+  (try (doseq [f (-> files
+                     (conj (str blog-dir "/index.org"))
+                     set)]
+         (let [html-name (target-file-name f)
+               is-index? (->> f io/file .getName (= "index.org"))
+               output-contents (prepare-html f is-index?)]
+           (println (if is-index? (str "**** " f) f) "->" html-name)
+           (spit html-name output-contents)))
+       (catch Throwable t
+         (println t)))
+  files)
 
 
 (defn watch-directories []
@@ -82,15 +125,16 @@
   (while true (Thread/sleep 1000)))
 
 
-;;; REMOVE BEFORE LEIN OR JAR:
-;; (-> (all-blog-files)
-;;     display-file-changes
-;;     handle-changed-files)
-
-
 (defn -main [& _]
   (-> output-dir
       io/file
       .mkdir)
   (watch-directories)
   (wait-forever))
+
+
+;;; REMOVE BEFORE LEIN OR JAR:
+;; (-> (all-org-files)
+;;     display-file-changes
+;;     handle-changed-files)
+;; (spit "/tmp/blorg/links.html" (make-links))
