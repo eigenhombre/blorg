@@ -7,11 +7,36 @@ Work in progress.  Protective eyewear required.
 * Goal
 
 To provide a Jekyll-like experience, but using org-mode as the primary
-markup language, and using something sane for templating and styling.
+markup language, and using something "sane" (for some value of sane)
+for templating and styling.
+
+* Why Org Mode?
+
+I really like writing in [[http://orgmode.org/][Org Mode]] (a text editing / outlining / To
+Do-list processing / scheduling / literate programming / ... mode for
+Emacs).  The outliner gets out of my way most of the time and lets me
+move ideas around while they are being formed, and lets me hide the
+portions that I'm not focusing on at any given time.  The literate
+programming, LaTeX / math modes, export to HTML, PDF, etc. are all
+huge bonuses.
+
+* Why not just Org Mode?
+
+I find the export tools available for Org Mode are not quite powerful
+(or fast) enough for a large blog.  I got pretty far trying to get the
+export features to work, but not far enough -- generation of a large
+site took too long, and customization was too unweildy.  In general I
+much prefer Clojure to Emacs Lisp for my development.
+
+* Why not Jekyll?
+
+I used Jekyll for a few years and was somewhat satisfied by it.  But
+it doesn't support Org Mode, and I am simply not that fond of Ruby and
+its related ecosystems.
 
 * Work Done / To Do
 
-See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q=is%3Aissue+is%3Aclosed][completed issues]].
+See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q=is%3Aissue+is%3Aclosed][completed issues]].  Basically I just started, though.
 
 * License
 
