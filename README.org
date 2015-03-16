@@ -9,9 +9,9 @@ Work in progress.  Protective eyewear required.
 To provide a Jekyll-like experience, but using org-mode as the primary
 markup language, and using something sane for templating and styling.
 
-* Done / TODO
+* Work Done / To Do
 
-See [[https://github.com/eigenhombre/blorg/issues][issues]].
+See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q%3Dis%253Aissue%2Bis%253Aclosed][completed issues]].
 
 * License
 
