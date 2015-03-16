@@ -50,10 +50,13 @@
   (str output-dir "/" (stripext (.getName (io/file fname))) ".html"))
 
 
+(defn pre-ify [s] (format "<pre>%s</pre>" s))
+
+
 (defn handle-changed-files [files]
   (doseq [f files]
     (let [html-name (target-file-name f)
-          output-contents (slurp f)]
+          output-contents (-> f slurp pre-ify)]
       (println f "->" html-name)
       (spit html-name output-contents)))
   files)
