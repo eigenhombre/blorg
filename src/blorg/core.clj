@@ -112,7 +112,7 @@
 
 (defn make-links []
   (html
-   [:ul
+   [:ul {:class "list-group"}
     (for [f (all-blog-posts)
           :let [link (-> f target-file-name stripdir)
                 extracted-title (-> f slurp extract-title-from-contents)
@@ -120,9 +120,10 @@
                 title (if extracted-title
                         extracted-title
                         (stripdir f))]]
-      [:li
+      [:li {:class "list-group-item"}
        [:a {:href link} title]
-       [:span {:class "filedate"} date-str]])]))
+       ;; FIXME: put in style sheet:
+       [:span {:style "padding-left: 10px;"} date-str]])]))
 
 
 (defn navbar []
@@ -182,27 +183,7 @@
       [:button {:type "submit", :class "btn btn-default"} "Submit"]]
      [:ul
       {:class "nav navbar-nav navbar-right"}
-      [:li {} [:a {:href "#"} "About"]]
-      [:li
-       {:class "dropdown"}
-       [:a
-        {:href "#",
-         :class "dropdown-toggle",
-         :data-toggle "dropdown",
-         :role "button",
-         :aria-expanded "false"}
-        "Tags"
-        [:span {:class "caret"}]]
-       [:ul
-        {:class "dropdown-menu", :role "menu"}
-        [:li {} [:a {:href "#"} "Lisp"]]
-        [:li {} [:a {:href "#"} "Physics"]]
-        [:li {} [:a {:href "#"} "Python"]]
-        [:li {} [:a {:href "#"} "Clojure"]]
-        [:li {:class "divider"}]
-        [:li {} [:a {:href "#"} "Art"]]
-        [:li {:class "divider"}]
-        [:li {} [:a {:href "#"} "Writing"]]]]]]]])
+      [:li {} [:a {:href "#"} "About"]]]]]])
 
 
 (defn prepare-html [f is-index?]
@@ -222,12 +203,16 @@
                      "3.3.4/js/bootstrap.min.js"))]
    [:body
     (navbar)
-    (let [contents (->> f slurp (vector :pre) html)
+    (let [contents (html
+                    [:pre (slurp f)])
           title (-> f slurp extract-title-from-contents)
           date-str (date-str-from-file f)]
       [:div
-       [:h1 title]
-       [:span date-str]
+       ;; FIXME: put date style in style sheet
+       [:h1 title [:span {:style (str "font-size:15px;"
+                                      "font-style:italic;"
+                                      "color:#888;"
+                                      "padding-left:20px;")} date-str]]
        (if-not is-index?
          contents
          (str contents (make-links)))])]))
