@@ -1,6 +1,6 @@
 (ns blorg.core
   (:require [blorg.mac :refer [say]]
-            [blorg.org :refer [contents->title]]
+            [blorg.org :refer :all]
             [blorg.util :refer :all]
             [blorg.watcher :refer [start-watcher]]
             [clojure.java.io :as io]
@@ -91,7 +91,7 @@
       [:span {:class "icon-bar"}]
       [:span {:class "icon-bar"}]
       [:span {:class "icon-bar"}]]
-     [:a {:class "navbar-brand", :href "#"} "johnj.com"]]
+     [:a {:class "navbar-brand", :href "index.html"} "johnj.com"]]
     [:div
      {:class "collapse navbar-collapse",
       :id "bs-example-navbar-collapse-1"}
@@ -100,7 +100,7 @@
       [:li
        {:class "active"}
        [:a
-        {:href "#"}
+        {:href "index.html"}
         "Home"
         [:span {:class "sr-only"} "(current)"]]]
       [:li
@@ -152,19 +152,26 @@
                      "3.3.4/js/bootstrap.min.js"))]
    [:body
     (navbar)
-    (let [contents (html
-                    [:pre (slurp f)])
-          title (-> f slurp contents->title)
-          date-str (date-str-from-file f)]
-      [:div
-       ;; FIXME: put date style in style sheet
-       [:h1 title [:span {:style (str "font-size:15px;"
-                                      "font-style:italic;"
-                                      "color:#888;"
-                                      "padding-left:20px;")} date-str]]
-       (if-not is-index?
-         contents
-         (str contents (make-links)))])]))
+    [:div {:class "container"}
+     (let [slurped (slurp f)
+           headers (-> slurped contents->headers)
+           title (:title headers)
+           tags (-> headers :tags)
+           split-tags (when tags (clojure.string/split tags #" "))
+           body (html [:pre (:body headers)])
+           date-str (date-str-from-file f)]
+       [:div
+        ;; FIXME: put date style in style sheet
+        [:h1 title [:span {:style (str "font-size:15px;"
+                                       "font-style:italic;"
+                                       "color:#888;"
+                                       "padding-left:20px;")} date-str]]
+        (when split-tags
+          [:p "Tags: " (for [t split-tags]
+                         [:button {:class "btn btn-default btn-xs"} t])])
+        (if-not is-index?
+          body
+          (str body (make-links)))])]]))
 
 
 (defn handle-changed-files [files]
@@ -197,8 +204,8 @@
 
 
 ;;; REMOVE BEFORE LEIN OR JAR:
-(-> (all-org-files)
-    announce-file-changes
-    display-file-changes
-    handle-changed-files)
-:ok
+;; (-> (all-org-files)
+;;     announce-file-changes
+;;     display-file-changes
+;;     handle-changed-files)
+;; :ok

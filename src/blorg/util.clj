@@ -22,7 +22,7 @@
            (tfmt/parse formatter)))
 
 
-(defn filename->timestr [filename]
+(defn file-creation-date [filename]
   (->> filename
        io/file
        .lastModified
@@ -32,7 +32,7 @@
 (defn file-date-str [filename]
   {:pre [(string? filename)]}
   (or (filename->timestr filename)
-      (filename->timestr filename)))
+      (file-creation-date filename)))
 
 
 (defn date-str-from-file [filename]

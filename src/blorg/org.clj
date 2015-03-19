@@ -4,7 +4,7 @@
 
 (def org-parser
   (parser "document = hdr* body?
-           hdr = <'#+'> #'[a-zA-Z]+' <':' #'\\s*'> #'.+' <'\n'>
+           hdr = <'#+'> #'[a-zA-Z]+' <':'> <#'\\s*'> #'.*' <'\n'>
            body = !hdr #'(?s).+'"))
 
 
