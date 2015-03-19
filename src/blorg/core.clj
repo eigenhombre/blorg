@@ -1,6 +1,6 @@
 (ns blorg.core
   (:require [blorg.mac :refer [say]]
-            [blorg.org :refer [extract-title-from-contents]]
+            [blorg.org :refer [contents->title]]
             [blorg.util :refer :all]
             [blorg.watcher :refer [start-watcher]]
             [clojure.java.io :as io]
@@ -64,7 +64,7 @@
    [:ul {:class "list-group"}
     (for [f (all-blog-posts)
           :let [link (-> f target-file-name stripdir)
-                extracted-title (-> f slurp extract-title-from-contents)
+                extracted-title (-> f slurp contents->title)
                 date-str (date-str-from-file f)
                 title (if extracted-title
                         extracted-title
@@ -154,7 +154,7 @@
     (navbar)
     (let [contents (html
                     [:pre (slurp f)])
-          title (-> f slurp extract-title-from-contents)
+          title (-> f slurp contents->title)
           date-str (date-str-from-file f)]
       [:div
        ;; FIXME: put date style in style sheet
