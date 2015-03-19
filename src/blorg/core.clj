@@ -1,20 +1,12 @@
 (ns blorg.core
-  (:require [blorg.util :refer [pluralize]]
+  (:require [blorg.mac :refer [say]]
+            [blorg.org :refer [extract-title-from-contents]]
+            [blorg.util :refer :all]
             [blorg.watcher :refer [start-watcher]]
-            [clj-time.coerce :as tc]
-            [clj-time.format :as tfmt]
             [clojure.java.io :as io]
-            [clojure.java.shell :refer [sh]]
             [environ.core :refer [env]]
             [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]))
-
-
-(defn say [s]
-  (->> s
-       (format "say %s")
-       (#(clojure.string/split % #" "))
-       (apply sh)))
 
 
 (defn announce-file-changes [files]
@@ -47,16 +39,6 @@
 (def blog-dir (-> :home env (str "/Dropbox/org/blog/src")))
 
 
-(defn- stripext [s]
-  (.substring s 0 (.lastIndexOf s ".")))
-
-
-(defn- stripdir [s]
-  (.substring s
-              (inc (.lastIndexOf s "/"))
-              (count s)))
-
-
 (defn- target-file-name [fname]
   (str output-dir "/" (stripext (.getName (io/file fname))) ".html"))
 
@@ -74,40 +56,7 @@
        reverse))
 
 
-(def ^:private date-re #"\d{4}-\d\d-\d\d")
-(def ^:private formatter (tfmt/formatter "yyyy-MM-dd"))
 (def all-blog-posts (partial all-org-files date-re))
-
-
-(defn filename->timestr [filename]
-  (some->> filename
-           (re-find date-re)
-           (tfmt/parse formatter)))
-
-
-(defn filename->timestr [filename]
-  (->> filename
-       io/file
-       .lastModified
-       tc/from-long))
-
-
-(defn file-date-str [filename]
-  {:pre [(string? filename)]}
-  (or (filename->timestr filename)
-      (filename->timestr filename)))
-
-
-(defn date-str-from-file [filename]
-  (->> filename
-       file-date-str
-       (tfmt/unparse formatter)))
-
-
-(defn extract-title-from-contents [s]
-  (->> s
-       (re-find #"\#\+TITLE: (.+)")
-       second))
 
 
 (defn make-links []
@@ -239,10 +188,6 @@
                        (partial map #(.getAbsolutePath %)))))
 
 
-(defn wait-forever []
-  (while true (Thread/sleep 1000)))
-
-
 (defn -main [& _]
   (-> output-dir
       io/file
@@ -252,8 +197,8 @@
 
 
 ;;; REMOVE BEFORE LEIN OR JAR:
-;; (-> (all-org-files)
-;;     announce-file-changes
-;;     display-file-changes
-;;     handle-changed-files)
-;; :ok
+(-> (all-org-files)
+    announce-file-changes
+    display-file-changes
+    handle-changed-files)
+:ok
