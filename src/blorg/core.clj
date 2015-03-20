@@ -3,10 +3,12 @@
             [blorg.org :refer :all]
             [blorg.util :refer :all]
             [blorg.watcher :refer [start-watcher]]
+            [clj-time.core :refer [now]]
             [clojure.java.io :as io]
             [environ.core :refer [env]]
             [hiccup.core :refer [html]]
-            [hiccup.page :refer [html5 include-css include-js]]))
+            [hiccup.page :refer [html5 include-css include-js]]
+            [garden.core :as g]))
 
 
 (defn announce-file-changes [files]
@@ -138,6 +140,22 @@
       [:li {} [:a {:href "#"} "About"]]]]]])
 
 
+(defn footer []
+  [:div {:class "footer"}
+   [:p (format "© %s John Jacobsen."
+               (.getYear (now)))]
+   [:p (format "Made with %s."
+               (html [:a {:href "https://github.com/eigenhombre/blorg"}
+                      "blorg"]))]])
+
+
+(defn css []
+  (g/css [:div.footer {:text-align "center"
+                       :font-size "13px"
+                       :font-style "italic"
+                       :color "#666"}]))
+
+
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
         headers (-> slurped contents->headers)
@@ -156,13 +174,18 @@
       (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
                        "1.11.2/jquery.min.js"))
       (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                       "3.3.4/js/bootstrap.min.js"))]
+                       "3.3.4/js/bootstrap.min.js"))
+      [:style (css)]]
      [:body
       (navbar)
       [:div {:class "container"}
        (let [tags (-> headers :tags)
              split-tags (when tags (clojure.string/split tags #" "))
-             body (html [:pre (:body headers)])
+             body (html [:pre (->> headers
+                                   :body
+                                   (take 1000)
+                                   (apply str))
+                         " ..."])
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet
@@ -175,7 +198,8 @@
                            [:button {:class "btn btn-default btn-xs"} t])])
           (if-not is-index?
             body
-            (str body (make-links)))])]])))
+            (str body (make-links)))])]
+      (footer)])))
 
 
 (defn handle-changed-files [files]

@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[clj-time "0.9.0"]
                  [environ "1.0.0"]
+                 [garden "1.2.5"]
                  [hiccup "1.0.5"]
                  [instaparse "1.3.5"]
                  [org.clojure/clojure "1.6.0"]
