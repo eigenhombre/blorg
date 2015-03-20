@@ -3,9 +3,10 @@
 
 
 (def org-parser
-  (parser "document = hdr* body?
-           hdr = <'#+'> #'[a-zA-Z]+' <':'> <#'\\s*'> #'.*' <'\n'>
-           body = !hdr #'(?s).+'"))
+  (parser "document = (hdr|newline)* body
+           newline = '\n'
+           hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <'\n'>
+           body = !hdr #'(?s).*'"))
 
 
 (defn contents->headers [s]
@@ -13,6 +14,7 @@
         hdrs (->> terms
                   (filter (comp (partial = :hdr) first))
                   (map rest)
+                  (remove (comp (partial = "LaTeX_HEADER") first))
                   (mapcat (juxt (comp keyword
                                       clojure.string/lower-case
                                       first)
