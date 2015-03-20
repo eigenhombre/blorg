@@ -3,11 +3,13 @@
 
 
 (def org-parser
-  (parser "document = (hdr|newline|comment)* body
+  (parser "document = (hdr|newline|comment)* body? section*
            newline = '\n'
            comment = '# ' #'[^\n]*' <'\n'>
            hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <'\n'>
-           body = !hdr #'(?s).*'"))
+           section-header = #'\\*+' <#' *'> #'[^\n]*' <'\n'>
+           section = section-header body?
+           body = !section-header !hdr #'[^\\*]*'"))
 
 
 (defn contents->headers [s]
