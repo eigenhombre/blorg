@@ -139,42 +139,43 @@
 
 
 (defn prepare-html [f is-index?]
-  (html5
-   {:lang "en"}
-   [:meta {:charset "utf-8"}]
-   [:meta {:http-equiv "X-UA-Compatible"
-           :content "IE=edge"}]
-   [:meta {:name "viewport"
-           :content "width=device-width, initial-scale=1"}]
-   [:head
-    (include-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                      "3.3.4/css/bootstrap.min.css"))
-    (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
-                     "1.11.2/jquery.min.js"))
-    (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                     "3.3.4/js/bootstrap.min.js"))]
-   [:body
-    (navbar)
-    [:div {:class "container"}
-     (let [slurped (slurp f)
-           headers (-> slurped contents->headers)
-           title (:title headers)
-           tags (-> headers :tags)
-           split-tags (when tags (clojure.string/split tags #" "))
-           body (html [:pre (:body headers)])
-           date-str (date-str-from-file f)]
-       [:div
-        ;; FIXME: put date style in style sheet
-        [:h1 title [:span {:style (str "font-size:15px;"
-                                       "font-style:italic;"
-                                       "color:#888;"
-                                       "padding-left:20px;")} date-str]]
-        (when split-tags
-          [:p "Tags: " (for [t split-tags]
-                         [:button {:class "btn btn-default btn-xs"} t])])
-        (if-not is-index?
-          body
-          (str body (make-links)))])]]))
+  (let [slurped (slurp f)
+        headers (-> slurped contents->headers)
+        title (:title headers)]
+    (html5
+     {:lang "en"}
+     [:meta {:charset "utf-8"}]
+     [:meta {:http-equiv "X-UA-Compatible"
+             :content "IE=edge"}]
+     [:meta {:name "viewport"
+             :content "width=device-width, initial-scale=1"}]
+     [:head
+      [:title title]
+      (include-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
+                        "3.3.4/css/bootstrap.min.css"))
+      (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
+                       "1.11.2/jquery.min.js"))
+      (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
+                       "3.3.4/js/bootstrap.min.js"))]
+     [:body
+      (navbar)
+      [:div {:class "container"}
+       (let [tags (-> headers :tags)
+             split-tags (when tags (clojure.string/split tags #" "))
+             body (html [:pre (:body headers)])
+             date-str (date-str-from-file f)]
+         [:div
+          ;; FIXME: put date style in style sheet
+          [:h1 title [:span {:style (str "font-size:15px;"
+                                         "font-style:italic;"
+                                         "color:#888;"
+                                         "padding-left:20px;")} date-str]]
+          (when split-tags
+            [:p "Tags: " (for [t split-tags]
+                           [:button {:class "btn btn-default btn-xs"} t])])
+          (if-not is-index?
+            body
+            (str body (make-links)))])]])))
 
 
 (defn handle-changed-files [files]
