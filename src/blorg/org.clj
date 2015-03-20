@@ -3,8 +3,9 @@
 
 
 (def org-parser
-  (parser "document = (hdr|newline)* body
+  (parser "document = (hdr|newline|comment)* body
            newline = '\n'
+           comment = '# ' #'[^\n]*' <'\n'>
            hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <'\n'>
            body = !hdr #'(?s).*'"))
 

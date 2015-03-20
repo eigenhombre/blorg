@@ -54,6 +54,16 @@
     (should= {:title "A"
               :body "Body\n"}
              (contents->headers
-              "#+TITLE: A\n#+LaTeX_HEADER:blahblah\nBody\n"))))
+              "#+TITLE: A\n#+LaTeX_HEADER:blahblah\nBody\n")))
+  (it "ignores Org Mode comments ('# stuff...')"
+    (should= {:title "A"
+              :tags "B C"
+              :body "Body\n"}
+             (contents->headers
+              (str "#+TITLE: A\n\n"
+                   "# a comment\n"
+                   "#+TAGS: B C\n"
+                   "# another comment\n"
+                   "Body\n")))))
 
 
