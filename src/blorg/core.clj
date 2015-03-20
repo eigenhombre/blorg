@@ -64,11 +64,14 @@
    [:ul {:class "list-group"}
     (for [f (all-blog-posts)
           :let [link (-> f target-file-name stripdir)
-                extracted-title (-> f slurp contents->title)
+                as-headers (-> f slurp contents->headers)
+                extracted-title (:title as-headers)
+                is-draft? (-> as-headers :draft Boolean/valueOf)
                 date-str (date-str-from-file f)
                 title (if extracted-title
                         extracted-title
-                        (stripdir f))]]
+                        (stripdir f))]
+          :when (not is-draft?)]
       [:li {:class "list-group-item"}
        [:a {:href link} title]
        ;; FIXME: put in style sheet:
