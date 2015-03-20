@@ -26,7 +26,8 @@ I find the export tools available for Org Mode are not quite powerful
 (or fast) enough for a large blog.  I got pretty far trying to get the
 export features to suit, but not far enough -- generation of a large
 site took too long, and customization was too unweildy.  In general I
-much prefer [[http://clojure.org][Clojure]] to Emacs Lisp for my development.
+much prefer developing software in [[http://clojure.org][Clojure]] than in Emacs Lisp (though
+admittedly I'm less experienced with the latter).
 
 * Why not Jekyll?
 
@@ -36,7 +37,8 @@ its related ecosystems.
 
 * Work Done / To Do
 
-See [[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q=is%3Aissue+is%3Aclosed][completed issues]].  Basically I just started, though.
+This is a recently-started project and not yet feature-complete.  See
+[[https://github.com/eigenhombre/blorg/issues][pending issues]], or [[https://github.com/eigenhombre/blorg/issues?q=is%3Aissue+is%3Aclosed][completed issues]].
 
 * License
 
