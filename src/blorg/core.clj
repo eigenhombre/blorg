@@ -71,6 +71,7 @@
                 parsed (org-parser slurped)
                 extracted-title (doc-title parsed)
                 is-draft? (doc-draft parsed)
+                tags (doc-tags parsed)
                 date-str (date-str-from-file f)
                 title (if extracted-title
                         extracted-title
@@ -79,7 +80,10 @@
       [:li {:class "list-group-item"}
        [:a {:href link} title]
        ;; FIXME: put in style sheet:
-       [:span {:style "padding-left: 10px;"} date-str]])]))
+       [:span {:style "padding-left: 10px;"} date-str]
+       [:span {:style (str "padding-left: 30px;"
+                           "color: #999;"
+                           "font-style: italic;")} tags]])]))
 
 
 (defn navbar []
