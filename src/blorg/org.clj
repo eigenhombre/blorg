@@ -15,10 +15,6 @@
            body = (body-line)+ !body"))
 
 
-(defn txform [tree]
-  (transform {:body (fn [& terms] [:body (apply str terms)])} tree))
-
-
 (defn get-last-tag-value [parsed tagname]
   (->> parsed
        rest
