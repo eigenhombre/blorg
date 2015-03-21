@@ -181,11 +181,7 @@
       [:div {:class "container"}
        (let [tags (-> headers :tags)
              split-tags (when tags (clojure.string/split tags #" "))
-             body (html [:pre (->> headers
-                                   :body
-                                   (take 1000)
-                                   (apply str))
-                         " ..."])
+             body (html [:pre (:body headers)])
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet

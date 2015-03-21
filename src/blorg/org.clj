@@ -7,13 +7,13 @@
            <newline> = '\n'
            comment = '# ' #'[^\n]*' <'\n'>
            hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <newline>
-           section-header = #'\\*+' <#' *'> #'[^\n]*' <newline>
+           section-header = #'\\*+' <#' +'> #'[^\n]*' <newline>
            section = section-header body?
-           <nonstar-first-character> = #'[^\\*]'
+           <nonstar-first-bit> = #'(?!\\* ).'
            <any-char> = #'.*'
-           <non-section-line> = nonstar-first-character any-char newline
-           <body-line> = !section-header !hdr non-section-line
-           body = body-line+"))
+           <non-section-line> = nonstar-first-bit any-char newline
+           <body-line> = !section-header !hdr !comment non-section-line
+           body = (body-line | newline | <comment>)+"))
 
 
 (defn txform [tree]
@@ -32,13 +32,5 @@
                                 second))
                   (apply hash-map))
         body (->> terms
-                  (filter (comp (partial = :body) first))
-                  first
-                  second)]
+                  (filter (comp #{:body :section} first)))]
     (assoc hdrs :body body)))
-
-
-(defn contents->title [s]
-  (-> s
-      contents->headers
-      :title))
