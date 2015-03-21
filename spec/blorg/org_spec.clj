@@ -91,7 +91,8 @@
     (should= [[:document
                [:section
                 [:section-header "*" "Section"]
-                [:body "Body 1\n" "Body 2\n"]]]]
+                [:body "Body 1\n"]]
+               [:body "Body 2\n"]]]
              (tparse "* Section\n"
                      "Body 1\n"
                      "# a comment\n"
@@ -109,4 +110,14 @@
                      "* Section 1\n"
                      "Body * 1\n"
                      "* Section 2\n"
-                     "Body 2\n"))))
+                     "Body 2\n")))
+  (it "handles level-2 headers"
+    (should= [[:document
+               [:section
+                [:section-header "*" "Section 1"]]
+               [:section
+                [:section-header "*" "*" "Section 2"]
+                [:body "The body.\n"]]]]
+             (tparse "* Section 1\n"
+                     "** Section 2\n"
+                     "The body.\n"))))

@@ -5,14 +5,14 @@
 (def org-parser
   (parser "document = (section | hdr | comment | body)*
            <newline> = '\n'
-           comment = '# ' #'[^\n]*' newline
-           hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <newline>
+           <comment> = <#'# [^\n]*\n'>
+           hdr = <'#+'> #'[a-zA-Z_]+' <#': *'> #'[^\n]*' <newline>
            section-header = starspace #'[^\n]*' <newline>
            section = section-header body? !body
            <starspace> = '*'+ <' '+>
            <non-section-line> = !starspace #'.*\n'
            <body-line> = !section-header !hdr !comment non-section-line
-           body = (body-line | <comment>)+ !body"))
+           body = (body-line)+ !body"))
 
 
 (defn txform [tree]
