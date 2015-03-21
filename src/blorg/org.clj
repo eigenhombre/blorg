@@ -3,34 +3,40 @@
 
 
 (def org-parser
-  (parser "document = (hdr|newline|comment)* body? section*
+  (parser "document = (section | hdr | comment | body)*
            <newline> = '\n'
-           comment = '# ' #'[^\n]*' <'\n'>
+           comment = '# ' #'[^\n]*' newline
            hdr = <'#+'> #'[a-zA-Z_]+' <':'> <#' *'> #'[^\n]*' <newline>
-           section-header = #'\\*+' <#' +'> #'[^\n]*' <newline>
-           section = section-header body?
-           <nonstar-first-bit> = #'(?!\\* ).'
-           <any-char> = #'.*'
-           <non-section-line> = nonstar-first-bit any-char newline
+           section-header = starspace #'[^\n]*' <newline>
+           section = section-header body? !body
+           <starspace> = '*'+ <' '+>
+           <non-section-line> = !starspace #'.*\n'
            <body-line> = !section-header !hdr !comment non-section-line
-           body = (body-line | newline | <comment>)+"))
+           body = (body-line | <comment>)+ !body"))
 
 
 (defn txform [tree]
   (transform {:body (fn [& terms] [:body (apply str terms)])} tree))
 
 
-(defn contents->headers [s]
-  (let [terms (->> s org-parser txform rest)
-        hdrs (->> terms
-                  (filter (comp (partial = :hdr) first))
-                  (map rest)
-                  (remove (comp (partial = "LaTeX_HEADER") first))
-                  (mapcat (juxt (comp keyword
-                                      clojure.string/lower-case
-                                      first)
-                                second))
-                  (apply hash-map))
-        body (->> terms
-                  (filter (comp #{:body :section} first)))]
-    (assoc hdrs :body body)))
+(defn get-last-tag-value [parsed tagname]
+  (->> parsed
+       rest
+       (filter (comp (partial = :hdr) first))
+       (filter (comp (partial = tagname) second))
+       last
+       last))
+
+
+(defn doc-title [parsed]
+  (get-last-tag-value parsed "TITLE"))
+
+
+(defn doc-tags [parsed]
+  (get-last-tag-value parsed "TAGS"))
+
+
+(defn doc-draft [parsed]
+  (-> parsed
+      (get-last-tag-value "DRAFT")
+      Boolean/valueOf))

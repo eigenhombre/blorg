@@ -5,6 +5,7 @@
             [blorg.watcher :refer [start-watcher]]
             [clj-time.core :refer [now]]
             [clojure.java.io :as io]
+            [clojure.pprint]
             [environ.core :refer [env]]
             [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
@@ -66,9 +67,10 @@
    [:ul {:class "list-group"}
     (for [f (all-blog-posts)
           :let [link (-> f target-file-name stripdir)
-                as-headers (-> f slurp contents->headers)
-                extracted-title (:title as-headers)
-                is-draft? (-> as-headers :draft Boolean/valueOf)
+                slurped (slurp f)
+                parsed (org-parser slurped)
+                extracted-title (doc-title parsed)
+                is-draft? (doc-draft parsed)
                 date-str (date-str-from-file f)
                 title (if extracted-title
                         extracted-title
@@ -158,13 +160,15 @@
 
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
-        headers (-> slurped contents->headers)
-        title (:title headers)]
+        parsed (org-parser slurped)
+        title (doc-title parsed)]
     (html5
      {:lang "en"}
      [:meta {:charset "utf-8"}]
      [:meta {:http-equiv "X-UA-Compatible"
              :content "IE=edge"}]
+     [:meta {:http-equiv "X-Clacks-Overhead"
+             :content "GNU Terry Pratchett"}]
      [:meta {:name "viewport"
              :content "width=device-width, initial-scale=1"}]
      [:head
@@ -179,9 +183,11 @@
      [:body
       (navbar)
       [:div {:class "container"}
-       (let [tags (-> headers :tags)
+       (let [tags (doc-tags parsed)
              split-tags (when tags (clojure.string/split tags #" "))
-             body (html [:pre (:body headers)])
+             body [:pre (with-out-str
+                          (clojure.pprint/pprint
+                           parsed))]
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet
@@ -194,20 +200,27 @@
                            [:button {:class "btn btn-default btn-xs"} t])])
           (if-not is-index?
             body
-            (str body (make-links)))])]
+            [:div
+             body
+             (make-links)])])]
       (footer)])))
 
 
 (defn handle-changed-files [files]
-  (try (doseq [f (-> files
-                     (conj (str blog-dir "/index.org"))
-                     set)]
-         (let [html-name (target-file-name f)
-               is-index? (->> f io/file .getName (= "index.org"))
-               output-contents (prepare-html f is-index?)]
-           (spit html-name output-contents)))
-       (catch Throwable t
-         (println t)))
+  (doseq [f (-> files
+                (conj (str blog-dir "/index.org"))
+                set)]
+    (future
+      (try
+        (let [html-name (target-file-name f)
+              is-index? (->> f io/file .getName (= "index.org"))
+              output-contents (prepare-html f is-index?)]
+          (spit html-name output-contents)
+          (println (format "Done with %s (%d bytes)"
+                           html-name
+                           (count output-contents))))
+        (catch Throwable t
+          (println t)))))
   files)
 
 

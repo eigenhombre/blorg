@@ -4,7 +4,9 @@
             [speclj.core :refer :all]))
 
 
-(defn tparse [txt] (->> txt (parses org-parser) txform))
+(defn tparse [& txt] (->> txt
+                          (apply str)
+                          (parses org-parser)))
 
 
 (describe "org-parser"
@@ -35,9 +37,9 @@
                [:hdr "X" "Y"]
                [:body "*not a section*\n"]]]
              (tparse "#+X: Y\n*not a section*\n")))
-  (it "can handle double spaces in body"
+  (it "can handle double newlines in body"
     (should= [[:document
-               [:body "part a\n\npart b\n"]]]
+               [:body "part a\n" "\n" "part b\n"]]]
              (tparse "part a\n\npart b\n")))
   (it "correctly parses body with TWO sections"
     (should= [[:document
@@ -47,10 +49,10 @@
                [:section
                 [:section-header "*" "Section 2"]
                 [:body "Stuff\n"]]]]
-             (tparse (str "#+HEAD: A\n"
-                          "* Section 1\n"
-                          "* Section 2\n"
-                          "Stuff\n"))))
+             (tparse "#+HEAD: A\n"
+                     "* Section 1\n"
+                     "* Section 2\n"
+                     "Stuff\n")))
   (it "correctly parses TWO sections, both with content"
     (should= [[:document
                [:hdr "HEAD" "A"]
@@ -60,25 +62,40 @@
                [:section
                 [:section-header "*" "Section 2"]
                 [:body "Body 2\n"]]]]
-             (tparse (str "#+HEAD: A\n"
-                          "* Section 1\n"
-                          "Body 1\n"
-                          "* Section 2\n"
-                          "Body 2\n"))))
-  (xit "allows header lines mid-body"
-       (should= 1
-                (tparse (str "#+TITLE: X\n"
-                             "Some body text.\n\n"
-                             "#+TOC: headlines 2\n\n"))))
+             (tparse "#+HEAD: A\n"
+                     "* Section 1\n"
+                     "Body 1\n"
+                     "* Section 2\n"
+                     "Body 2\n")))
+  (it "allows header lines between sections"
+    (should= [[:document
+               [:hdr "TITLE" "X"]
+               [:section [:section-header "*" "Section 1"]]
+               [:hdr "TOC" "headlines 2"]
+               [:section [:section-header "*" "Section 2"]]]]
+             (tparse "#+TITLE: X\n"
+                     "* Section 1\n"
+                     "#+TOC: headlines 2\n"
+                     "* Section 2\n")))
+  (it "allows header lines between non-section body bits"
+    (should= [[:document
+               [:hdr "TITLE" "X"]
+               [:body "Body 1\n"]
+               [:hdr "TOC" "headlines 2"]
+               [:body "Body 2\n"]]]
+             (tparse "#+TITLE: X\n"
+                     "Body 1\n"
+                     "#+TOC: headlines 2\n"
+                     "Body 2\n")))
   (it "allows and ignores comments in body"
     (should= [[:document
                [:section
                 [:section-header "*" "Section"]
-                [:body "Body 1\nBody 2\n"]]]]
-             (tparse (str "* Section\n"
-                          "Body 1\n"
-                          "# a comment\n"
-                          "Body 2\n"))))
+                [:body "Body 1\n" "Body 2\n"]]]]
+             (tparse "* Section\n"
+                     "Body 1\n"
+                     "# a comment\n"
+                     "Body 2\n")))
   (it "correctly parse when * is in a body"
     (should= [[:document
                [:hdr "HEAD" "A"]
@@ -88,45 +105,8 @@
                [:section
                 [:section-header "*" "Section 2"]
                 [:body "Body 2\n"]]]]
-             (tparse (str "#+HEAD: A\n"
-                          "* Section 1\n"
-                          "Body * 1\n"
-                          "* Section 2\n"
-                          "Body 2\n")))))
-
-
-(describe "contents->headers"
-  (it "gets headers correctly"
-    (should= {:title "My Title"
-              :meta "My Meta"
-              :body [[:body "Stuff\nMore Stuff\n"]]}
-             (contents->headers
-              "#+TITLE: My Title\n#+META: My Meta\nStuff\nMore Stuff\n")))
-  (it "doesn't correctly parse data after empty header (regression test)"
-    (should= {:tags "B C"
-              :meta ""
-              :title "A"
-              :body [[:body "Body\n"]]}
-             (contents->headers
-              "#+TITLE: A\n#+META:\n#+TAGS: B C\nBody\n")))
-  (it "handles (ignores) gaps (newlines) in the hdr block"
-    (should= {:title "A"
-              :tags "B C"
-              :body [[:body "Body\n"]]}
-             (contents->headers
-              "#+TITLE: A\n\n#+TAGS: B C\nBody\n")))
-  (it "ignores LaTeX_HEADER headers"
-    (should= {:title "A"
-              :body [[:body "Body\n"]]}
-             (contents->headers
-              "#+TITLE: A\n#+LaTeX_HEADER:blahblah\nBody\n")))
-  (it "ignores Org Mode comments ('# stuff...')"
-    (should= {:title "A"
-              :tags "B C"
-              :body [[:body "Body\n"]]}
-             (contents->headers
-              (str "#+TITLE: A\n\n"
-                   "# a comment\n"
-                   "#+TAGS: B C\n"
-                   "# another comment\n"
-                   "Body\n")))))
+             (tparse "#+HEAD: A\n"
+                     "* Section 1\n"
+                     "Body * 1\n"
+                     "* Section 2\n"
+                     "Body 2\n"))))
