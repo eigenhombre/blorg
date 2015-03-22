@@ -10,7 +10,16 @@ To provide a Jekyll-like experience, but using Org Mode as the primary
 markup language, and using something "sane" (for some value of sane)
 for templating and styling.
 
-* Why Org Mode?
+* Installing
+
+It's not on Clojars (yet).  Check out the project and run it with
+=lein run=.
+* Running tests
+
+The parser has a few dozen tests.  Run them with =lein spec= or =lein spec -a=.
+
+* Motivation
+** Why Org Mode?
 
 I really like writing in [[http://orgmode.org/][Org Mode]] (a text editing / outlining / To
 Do-list processing / scheduling / literate programming / ... mode for
@@ -20,7 +29,7 @@ portions that I'm not focusing on at any given time.  The literate
 programming, LaTeX / math modes, export to HTML, PDF, etc. are all
 huge bonuses.
 
-* Why not /just/ Org Mode?
+** Why not /just/ Org Mode?
 
 I find the export tools available for Org Mode are not quite powerful
 (or fast) enough for a large blog.  I got pretty far trying to get the
@@ -29,11 +38,13 @@ site took too long, and customization was too unweildy.  In general I
 much prefer developing software in [[http://clojure.org][Clojure]] than in Emacs Lisp (though
 admittedly I'm less experienced with the latter).
 
-* Why not Jekyll?
+** Why not Jekyll?
 
 I used Jekyll for a few years and was somewhat satisfied by it.  But
 it doesn't support Org Mode, and I am simply not that fond of Ruby and
-its related ecosystems.
+its related ecosystems.  Also I have a number of customizations
+relating to handling images that I'm unlikely to easily get working
+with Jekyll.
 
 * Work Done / To Do
 
