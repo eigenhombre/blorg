@@ -12,5 +12,7 @@
 /classes/
 /lib/
 /target/
+demo/
 pom.xml
 pom.xml.asc
+screenshots, design/

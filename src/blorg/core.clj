@@ -159,7 +159,10 @@
   (g/css [:div.footer {:text-align "center"
                        :font-size "13px"
                        :font-style "italic"
-                       :color "#666"}]))
+                       :color "#666"}]
+         [:h1.title {:font-size "33px"}]
+         [:h1 {:font-size "24px"}]
+         [:h2 {:font-size "20px"}]))
 
 
 (defn prepare-html [f is-index?]
@@ -193,10 +196,11 @@
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet
-          [:h1 title [:span {:style (str "font-size:15px;"
-                                         "font-style:italic;"
-                                         "color:#888;"
-                                         "padding-left:20px;")} date-str]]
+          [:h1 {:class "title"}
+           title [:span {:style (str "font-size:15px;"
+                                     "font-style:italic;"
+                                     "color:#888;"
+                                     "padding-left:20px;")} date-str]]
           (when split-tags
             [:p "Tags: " (for [t split-tags]
                            [:button {:class "btn btn-default btn-xs"} t])])
