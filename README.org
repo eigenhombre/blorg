@@ -1,6 +1,6 @@
 [[./img/blorg.png]]
 
-... a static site generator using Org-Mode files as markup.
+... a static site generator using [[http://orgmode.org/][Org Mode]] files as markup.
 
 Work in progress.  Protective eyewear required.
 
@@ -8,25 +8,12 @@ Work in progress.  Protective eyewear required.
 
 - To provide a Jekyll-like workflow (edit markup files, have them
   automatically processed into HTML),
-- Using Org Mode as the markup language,
-- Using Hiccup for templating.
-- Supporting
+- using Org Mode as the markup language,
+- using Hiccup for templating, and
+- supporting all of
   - my art- and image-heavy pages and image galleries;
   - my math- and code-heavy software posts;
   - my narrative-heavy South Pole blog posts.
-
-* Installing
-
-It's not on Clojars (yet).  Check out the project and run it with
-=lein run=.  The program parses any Org Mode files in the source
-directory and publishes them in the destination directory
-(=/tmp/blorg=). At the moment the source and destination directories
-are hardcoded, so you'll have to change them in the code.  (That will
-obviously change soon.)
-
-* Running tests
-
-The parser has a few dozen tests.  Run them with =lein spec= or =lein spec -a=.
 
 * Motivation
 ** Why Org Mode?
@@ -35,9 +22,10 @@ I really like writing in [[http://orgmode.org/][Org Mode]] (a text editing / out
 Do-list processing / scheduling / literate programming / ... mode for
 [[http://www.gnu.org/software/emacs/][Emacs]]).  The outliner gets out of my way most of the time and lets me
 move ideas around while they are being formed, and lets me hide the
-portions that I'm not focusing on at any given time.  The literate
-programming, LaTeX / math modes, export to HTML, PDF, etc. are all
-huge bonuses.
+portions that I'm not focusing on at any given time.  I can export to
+a fairly nice looking PDF document in a few keystrokes.  I also use
+the literate programming and LaTeX / math support just about every
+day.
 
 ** Why not /just/ Org Mode?
 
@@ -56,6 +44,19 @@ it doesn't support Org Mode, and I am simply not that fond of Ruby and
 its related ecosystems.  Also I have a number of customizations
 relating to handling images that I'm unlikely to easily get working
 with Jekyll.
+
+* Installing
+
+It's not on Clojars (yet).  Check out the project and run it with
+=lein run=.  The program parses any Org Mode files in the source
+directory and publishes them in the destination directory
+(=/tmp/blorg=). At the moment the source and destination directories
+are hardcoded, so you'll have to change them in the code.  (That will
+obviously change soon.)
+
+* Running tests
+
+The parser has a few dozen tests.  Run them with =lein spec= or =lein spec -a=.
 
 * Work Done / To Do
 
