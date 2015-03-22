@@ -1,12 +1,13 @@
 (ns blorg.org
-  (:require [instaparse.core :refer [parser transform]]))
+  (:require [hiccup.util :refer [escape-html]]
+            [instaparse.core :refer [parser transform]]))
 
 
 (def org-parser
   (parser "document = (section | hdr | comment | body)*
            <newline> = '\n'
            <comment> = <#'# [^\n]*\n'>
-           hdr = <'#+'> #'[a-zA-Z_]+' <#': *'> #'[^\n]*' <newline>
+           hdr = <'#+'> #'[a-zA-Z_]+' <#': *'> #'[^\n]*' <newline>+
            section-header = starspace #'[^\n]*' <newline>
            section = section-header body? !body
            <starspace> = '*'+ <' '+>
@@ -36,3 +37,17 @@
   (-> parsed
       (get-last-tag-value "DRAFT")
       Boolean/valueOf))
+
+
+(def paragraph-parser
+  (parser "div = <nl>? (p <nl+>)* p <nl?> | <nl>+
+           <nl> = '\n'
+           p = !nl #'((?s)(?!\n\n).)+\n?'"))
+
+
+(defn as-hiccup [parsed]
+  (transform {:body #(->> %&
+                          (apply str)
+                          paragraph-parser)
+              :hdr (fn [_ args])}
+             parsed))
