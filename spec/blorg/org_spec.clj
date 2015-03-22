@@ -123,70 +123,97 @@
                      "The body.\n"))))
 
 
-(defn pparse [& txt] (->> txt
+(defn bparse [& txt] (->> txt
                           (apply str)
-                          (parses paragraph-parser)))
+                          (parses body-parser)))
 
 
 (describe "paragraph parsing"
   (it "handles a newline by itself"
-    (should= [[:div]] (pparse "\n")))
+    (should= [[:div]] (bparse "\n")))
   (it "handles a newline before and after a paragraph"
     (should= [[:div
                [:p "something\n"]]]
-             (pparse "\nsomething\n")))
+             (bparse "\nsomething\n")))
   (it "handles two newlines by themselves"
     (should= [[:div]]
-             (pparse "\n\n")))
+             (bparse "\n\n")))
   (it "handles two trailing newlines"
     (should= [[:div
                [:p "something\n"]]]
-             (pparse "something\n\n")))
+             (bparse "something\n\n")))
   (it "parses a one-line paragraph"
     (should= [[:div
                [:p "some text"]]]
-             (pparse "some text")))
+             (bparse "some text")))
   (it "parses a two-line paragraph"
     (should= [[:div
                [:p "some text\nand more text"]]]
-             (pparse "some text\n"
+             (bparse "some text\n"
                      "and more text")))
   (it "parses two paragraphs"
     (should= [[:div
                [:p "paragraph one\n"]
                [:p "paragraph two\n"]]]
-             (pparse "paragraph one\n\n"
+             (bparse "paragraph one\n\n"
                      "paragraph two\n")))
   (it "parses two paragraphs separated w/ several newlines"
     (should= [[:div
                [:p "paragraph one\n"]
                [:p "paragraph two\n"]]]
-             (pparse "paragraph one\n\n\n\n\n"
+             (bparse "paragraph one\n\n\n\n\n"
                      "paragraph two\n"))))
 
 
-(def body-parser
-  (parser "<body> = (default | link)*
-           <default> = #'((?!\\[\\[).)*'
-           link = <'[['> #'[^\\]]+' <']['> #'[^\\]]+' <']]'>"))
-
-
-(defn bparse [& txt] (->> txt
+(defn pparse [& txt] (->> txt
                           (apply str)
-                          (parses body-parser)))
+                          (parses paragraph-parser)))
+
+
+(describe "Italics and Bold Face"
+  (it "Parses a normal word correctly"
+    (should= [["stuff"]]
+             (pparse "stuff")))
+  (it "parses an italicized word"
+    (should= [[[:em "italicized stuff"]]]
+             (pparse "/italicized stuff/")))
+  (it "parses an italicized word with trailing stuff"
+    (should= [[[:em "italicized stuff"] " more stuff"]]
+             (pparse "/italicized stuff/ more stuff")))
+  (it "parses an italicized word with leading stuff"
+    (should= [["early stuff "[:em "italicized stuff"]]]
+             (pparse "early stuff /italicized stuff/")))
+  (it "parses a boldfaced word with stuff around it"
+    (should= [["I like " [:strong "bold stuff"] " better"]]
+             (pparse "I like *bold stuff* better")))
+  (it "doesn't choke on http:// inside bold"
+    (should= [["Visit " [:strong "http://foo.com"] "!"]]
+             (pparse "Visit *http://foo.com*!"))))
+
 
 (describe "Link parsing"
-  (it "parses a link"
+  #_(it "parses a link"
     (should= [[[:link "a" "b"]]]
-             (bparse "[[a][b]]")))
-  (it "parses a link with a newline"
+             (pparse "[[a][b]]")))
+  #_(it "parses a link with a newline"
     (should= [[[:link "a" "b\nc"]]]
-             (bparse "[[a][b\nc]]")))
-  (it "handles something extra before a link"
+             (pparse "[[a][b\nc]]")))
+  #_(it "handles something extra before a link"
     (should= [["x "
                [:link "a" "b"]]]
-             (bparse "x [[a][b]]")))
-  (it "handles something extra after a link"
+             (pparse "x [[a][b]]")))
+  #_(it "handles something extra after a link"
     (should= [[[:link "a" "b"]
                " x"]]
-             (bparse "[[a][b]] x"))))
+             (pparse "[[a][b]] x")))
+  #_(it "recognizes emphasized text"
+    (should= [[[:em "bang!"]]]
+             (pparse "/bang!/")))
+  #_(it "handles emphasized text followed by plain text"
+    (should= [[[:em "bang!"] ", he said"]]
+             (pparse "/bang!/, he said")))
+  #_(it "handles emphasized text prefixed by plain text"
+    (should= [["Awwww " [:em "shucks!"]]]
+             (pparse "Awwww /shucks!/"))))
+
+

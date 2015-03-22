@@ -39,15 +39,39 @@
       Boolean/valueOf))
 
 
-(def paragraph-parser
+(def body-parser
   (parser "div = <nl>? (p <nl+>)* p <nl?> | <nl>+
            <nl> = '\n'
            p = !nl #'((?s)(?!\n\n).)+\n?'"))
 
 
-(defn as-hiccup [parsed]
-  (transform {:body #(->> %&
-                          (apply str)
-                          paragraph-parser)
-              :hdr (fn [_ args])}
-             parsed))
+
+
+(def paragraph-parser
+  "
+  Parser for things within paragraphs
+  "
+  (parser "<D> = txt
+           <txt> = (words | em | strong)+
+           strong = <'*'> strongtxt <'*'>
+           <strongtxt> = #'[^\\*]+' !strongtxt
+           em = <'/'> txt <'/'>
+           <words> = #'[^/\\*]+' !words "))
+
+
+(def as-hiccup
+  (partial transform
+   {:body #(->> %&
+                (apply str)
+                body-parser)
+    :hdr (fn [& args])
+
+    :section-header
+    (fn [& args]
+      (let [section-title (last args)
+            tag (->> args count (+ -2) (str "h") keyword)]
+        [tag section-title]))
+
+    :section
+    (fn [& args]
+      args)}))
