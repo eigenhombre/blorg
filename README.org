@@ -4,16 +4,26 @@
 
 Work in progress.  Protective eyewear required.
 
-* Goal
+* Goals
 
-To provide a Jekyll-like experience, but using Org Mode as the primary
-markup language, and using something "sane" (for some value of sane)
-for templating and styling.
+- To provide a Jekyll-like workflow (edit markup files, have them
+  automatically processed into HTML),
+- Using Org Mode as the markup language,
+- Using Hiccup for templating.
+- Supporting
+  - my art- and image-heavy pages and image galleries;
+  - my math- and code-heavy software posts;
+  - my narrative-heavy South Pole blog posts.
 
 * Installing
 
 It's not on Clojars (yet).  Check out the project and run it with
-=lein run=.
+=lein run=.  The program parses any Org Mode files in the source
+directory and publishes them in the destination directory
+(=/tmp/blorg=). At the moment the source and destination directories
+are hardcoded, so you'll have to change them in the code.  (That will
+obviously change soon.)
+
 * Running tests
 
 The parser has a few dozen tests.  Run them with =lein spec= or =lein spec -a=.
@@ -31,12 +41,13 @@ huge bonuses.
 
 ** Why not /just/ Org Mode?
 
-I find the export tools available for Org Mode are not quite powerful
-(or fast) enough for a large blog.  I got pretty far trying to get the
-export features to suit, but not far enough -- generation of a large
-site took too long, and customization was too unweildy.  In general I
-much prefer developing software in [[http://clojure.org][Clojure]] than in Emacs Lisp (though
-admittedly I'm less experienced with the latter).
+*I.e., why a Clojure app?*  I find the export tools available for Org
+Mode are not quite powerful (or fast) enough for a large blog.  I got
+pretty far trying to get the export features to suit, but not far
+enough -- generation of a large site took too long, and customization
+was too unweildy.  In general I much prefer developing software in
+[[http://clojure.org][Clojure]] than in Emacs Lisp (though admittedly I'm less experienced
+with the latter).
 
 ** Why not Jekyll?
 
