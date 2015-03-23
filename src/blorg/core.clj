@@ -192,7 +192,7 @@
       [:div {:class "container"}
        (let [tags (doc-tags parsed)
              split-tags (when tags (clojure.string/split tags #" "))
-             body (as-hiccup parsed)
+             body (-> parsed as-hiccup xform-paragraphs)
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet

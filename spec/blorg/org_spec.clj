@@ -174,6 +174,10 @@
   (it "Parses a normal word correctly"
     (should= [["stuff"]]
              (pparse "stuff")))
+  (it "Handles multiline text"
+    (should= [["multi\nline"]]
+             (pparse "multi\n"
+                     "line")))
   (it "parses an italicized word"
     (should= [[[:em "italicized stuff"]]]
              (pparse "/italicized stuff/")))
@@ -183,6 +187,9 @@
   (it "parses an italicized word with leading stuff"
     (should= [["early stuff "[:em "italicized stuff"]]]
              (pparse "early stuff /italicized stuff/")))
+  (it "Can handle a single /"
+    (should= [["text with just / one slash"]]
+             (pparse "text with just / one slash")))
   (it "parses a boldfaced word with stuff around it"
     (should= [["I like " [:strong "bold stuff"] " better"]]
              (pparse "I like *bold stuff* better")))
@@ -192,7 +199,16 @@
 
 
 (describe "Link parsing"
-  #_(it "parses a link"
+  (it "handles a half-link"
+    (should= [[[:link "a"]]]
+             (pparse "[[a]]")))
+  (it "can survive a link with a URL in it"
+    (should= [[[:link "http://x.com/y"]]]
+             (pparse "[[http://x.com/y]]")))
+  (it "can survive text followed by a link with a URL in it"
+    (should= [["Visit " [:link "http://x.com/y"]]]
+             (pparse "Visit [[http://x.com/y]]")))
+  #_(it "parses a full link"
     (should= [[[:link "a" "b"]]]
              (pparse "[[a][b]]")))
   #_(it "parses a link with a newline"
@@ -215,5 +231,3 @@
   #_(it "handles emphasized text prefixed by plain text"
     (should= [["Awwww " [:em "shucks!"]]]
              (pparse "Awwww /shucks!/"))))
-
-

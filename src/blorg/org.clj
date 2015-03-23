@@ -45,18 +45,16 @@
            p = !nl #'((?s)(?!\n\n).)+\n?'"))
 
 
-
-
 (def paragraph-parser
   "
   Parser for things within paragraphs
   "
-  (parser "<D> = txt
-           <txt> = (words | em | strong)+
-           strong = <'*'> strongtxt <'*'>
-           <strongtxt> = #'[^\\*]+' !strongtxt
-           em = <'/'> txt <'/'>
-           <words> = #'[^/\\*]+' !words "))
+  (parser "<D>     = txt
+           <txt>   = (words | em | strong | link)+
+           em      = <'/'> #'[^/]+' <'/'>
+           strong  = <'*'> #'[^\\*]+' <'*'>
+           link    = <'[['> #'(?s)((?!\\]\\]).)*' <']]'>
+           <words> = !'[[' #'(?s)((?!\\*.+\\*)(?!/.+/)(?!\\[\\[).)+'"))
 
 
 (def as-hiccup
@@ -64,7 +62,7 @@
    {:body #(->> %&
                 (apply str)
                 body-parser)
-    :hdr (fn [& args])
+    :hdr (fn [& args] "")
 
     :section-header
     (fn [& args]
@@ -75,3 +73,10 @@
     :section
     (fn [& args]
       args)}))
+
+
+(def xform-paragraphs
+  (partial
+   transform
+   {:p (fn [x]
+         (into [] (list* :p (paragraph-parser x))))}))
