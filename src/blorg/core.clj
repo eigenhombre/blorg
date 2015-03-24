@@ -9,6 +9,7 @@
             [environ.core :refer [env]]
             [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
+            [hiccup.util :refer [escape-html]]
             [garden.core :as g]))
 
 
@@ -192,7 +193,24 @@
       [:div {:class "container"}
        (let [tags (doc-tags parsed)
              split-tags (when tags (clojure.string/split tags #" "))
-             body (-> parsed as-hiccup xform-paragraphs)
+             hiccuped (as-hiccup parsed)
+             paragraphs-parsed (xform-paragraphs hiccuped)
+             links-parsed (xform-links paragraphs-parsed)
+             pre-ify (fn [desc x]
+                       [:div
+                        [:hr]
+                        [:p desc]
+                        [:p [:pre
+                             (-> x
+                                 clojure.pprint/pprint
+                                 with-out-str
+                                 escape-html)]]])
+             allbodies [:div
+                        links-parsed
+                        (pre-ify "pre-html:" links-parsed)
+                        (pre-ify "before parsing links:" paragraphs-parsed)
+                        (pre-ify "raw hiccup:" hiccuped)
+                        (pre-ify "raw parse:" parsed)]
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet
@@ -205,11 +223,12 @@
             [:p "Tags: " (for [t split-tags]
                            [:button {:class "btn btn-default btn-xs"} t])])
           (if-not is-index?
-            body
+            allbodies
             [:div
-             body
+             allbodies
              (make-links)])])]
       (footer)])))
+
 
 
 (defn handle-changed-files [files]
@@ -226,7 +245,8 @@
                            html-name
                            (count output-contents))))
         (catch Throwable t
-          (println t)))))
+          (printf "ERROR %s: %s%n" f t)
+          (flush)))))
   files)
 
 

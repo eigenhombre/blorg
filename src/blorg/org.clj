@@ -1,6 +1,6 @@
 (ns blorg.org
   (:require [hiccup.util :refer [escape-html]]
-            [instaparse.core :refer [parser transform]]))
+            [instaparse.core :refer [parser transform get-failure]]))
 
 
 (def org-parser
@@ -53,30 +53,54 @@
            <txt>   = (words | em | strong | link)+
            em      = <'/'> #'[^/]+' <'/'>
            strong  = <'*'> #'[^\\*]+' <'*'>
-           link    = <'[['> #'(?s)((?!\\]\\]).)*' <']]'>
+           link    = link1 | link2
+           <link1> = !link2 <'[['> #'(?s)((?!\\]\\]).)*' <']]'>
+           <link2> = <'[['> #'(?s)((?!\\]).)*' <']['> #'(?s)((?!\\]).)*' <']]'>
            <words> = !'[[' #'(?s)((?!\\*.+\\*)(?!/.+/)(?!\\[\\[).)+'"))
 
 
-(def as-hiccup
-  (partial transform
+(defn check-parse [orig parsed]
+  (if (get-failure parsed)
+    [:pre "parse FAILED:" orig]
+    parsed))
+
+
+(defn as-hiccup [parsed]
+  (transform
    {:body #(->> %&
                 (apply str)
-                body-parser)
+                body-parser
+                (check-parse %&))
     :hdr (fn [& args] "")
 
     :section-header
     (fn [& args]
       (let [section-title (last args)
-            tag (->> args count (+ -2) (str "h") keyword)]
+            tag (->> args count dec (str "h") keyword)]
         [tag section-title]))
 
     :section
     (fn [& args]
-      args)}))
+      (list* :div args))}
+   parsed))
 
 
-(def xform-paragraphs
-  (partial
-   transform
-   {:p (fn [x]
-         (into [] (list* :p (paragraph-parser x))))}))
+(defn xform-paragraphs [parsed]
+  (transform
+   {:p (fn [& [z & zz]]
+         (when zz (println "EXTRA STUFF:" zz "(before" z ")"))
+         (->> z
+              paragraph-parser
+              (check-parse z)
+              (list* :p)
+              vec))}
+   parsed))
+
+
+(defn xform-links [parsed]
+  (transform
+   {:link (fn [& [a b]]
+            (if b
+              [:a {:href a} b]
+              [:a {:href a} a]))}
+   parsed))

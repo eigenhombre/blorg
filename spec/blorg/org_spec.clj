@@ -175,18 +175,18 @@
     (should= [["stuff"]]
              (pparse "stuff")))
   (it "Handles multiline text"
-    (should= [["multi\nline"]]
-             (pparse "multi\n"
-                     "line")))
+    (should= [["\nmulti\nline\n"]]
+             (pparse "\nmulti\n"
+                     "line\n")))
   (it "parses an italicized word"
     (should= [[[:em "italicized stuff"]]]
              (pparse "/italicized stuff/")))
-  (it "parses an italicized word with trailing stuff"
-    (should= [[[:em "italicized stuff"] " more stuff"]]
-             (pparse "/italicized stuff/ more stuff")))
-  (it "parses an italicized word with leading stuff"
-    (should= [["early stuff "[:em "italicized stuff"]]]
-             (pparse "early stuff /italicized stuff/")))
+  (it "handles emphasized text followed by plain text"
+    (should= [[[:em "bang!"] ", he said"]]
+             (pparse "/bang!/, he said")))
+  (it "handles emphasized text prefixed by plain text"
+    (should= [["Awwww " [:em "shucks!"]]]
+             (pparse "Awwww /shucks!/")))
   (it "Can handle a single /"
     (should= [["text with just / one slash"]]
              (pparse "text with just / one slash")))
@@ -208,26 +208,17 @@
   (it "can survive text followed by a link with a URL in it"
     (should= [["Visit " [:link "http://x.com/y"]]]
              (pparse "Visit [[http://x.com/y]]")))
-  #_(it "parses a full link"
+  (it "parses a full link"
     (should= [[[:link "a" "b"]]]
              (pparse "[[a][b]]")))
-  #_(it "parses a link with a newline"
+  (it "parses a link with a newline"
     (should= [[[:link "a" "b\nc"]]]
              (pparse "[[a][b\nc]]")))
-  #_(it "handles something extra before a link"
+  (it "handles something extra before a link"
     (should= [["x "
                [:link "a" "b"]]]
              (pparse "x [[a][b]]")))
-  #_(it "handles something extra after a link"
+  (it "handles something extra after a link"
     (should= [[[:link "a" "b"]
                " x"]]
-             (pparse "[[a][b]] x")))
-  #_(it "recognizes emphasized text"
-    (should= [[[:em "bang!"]]]
-             (pparse "/bang!/")))
-  #_(it "handles emphasized text followed by plain text"
-    (should= [[[:em "bang!"] ", he said"]]
-             (pparse "/bang!/, he said")))
-  #_(it "handles emphasized text prefixed by plain text"
-    (should= [["Awwww " [:em "shucks!"]]]
-             (pparse "Awwww /shucks!/"))))
+             (pparse "[[a][b]] x"))))
