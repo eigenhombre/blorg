@@ -161,56 +161,85 @@
                        :font-size "13px"
                        :font-style "italic"
                        :color "#666"}]
+         [:div.indent {:margin-left "5em"}]
          [:h1.title {:font-size "33px"}]
          [:h1 {:font-size "24px"}]
          [:h2 {:font-size "20px"}]))
 
 
+(defn allbodies [raw-text]
+  (let [first-parse (org-parser raw-text)
+        into-paragraphs (as-hiccup first-parse)
+        with-markup (xform-paragraphs into-paragraphs)
+        with-links (xform-links with-markup)]
+    {:raw-text raw-text
+     :first-parse first-parse
+     :into-paragraphs into-paragraphs
+     :with-markup with-markup
+     :with-links with-links}))
+
+
+(defn pre-ify [desc x]
+  [:div
+   [:a {:id (str "showhide-" desc)
+        :href "javascript:void(0)"} desc]
+   [:div {:id desc
+          :style "display:none;"}
+    [:pre
+     (-> x
+         clojure.pprint/pprint
+         with-out-str
+         escape-html)]]
+   [:script (format (str "$(\"#%s\").click(function()"
+                         "  { $(\"#%s\").toggle();"
+                         "});")
+                    (str "showhide-" desc)
+                    desc)]])
+
+
+(defn head [title]
+  [:head
+   [:title title]
+   (include-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
+                     "3.3.4/css/bootstrap.min.css"))
+   (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
+                    "1.11.2/jquery.min.js"))
+   (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
+                    "3.3.4/js/bootstrap.min.js"))
+   [:style (css)]])
+
+
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
-        parsed (org-parser slurped)
-        title (doc-title parsed)]
+        {:keys [raw-text
+                first-parse
+                into-paragraphs
+                with-markup
+                with-links]} (allbodies slurped)
+        title (doc-title first-parse)]
     (html5
      {:lang "en"}
      [:meta {:charset "utf-8"}]
-     [:meta {:http-equiv "X-UA-Compatible"
-             :content "IE=edge"}]
-     [:meta {:http-equiv "X-Clacks-Overhead"
-             :content "GNU Terry Pratchett"}]
-     [:meta {:name "viewport"
-             :content "width=device-width, initial-scale=1"}]
-     [:head
-      [:title title]
-      (include-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                        "3.3.4/css/bootstrap.min.css"))
-      (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
-                       "1.11.2/jquery.min.js"))
-      (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                       "3.3.4/js/bootstrap.min.js"))
-      [:style (css)]]
+     [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
+     [:meta {:http-equiv "X-Clacks-Overhead" :content "GNU Terry Pratchett"}]
+     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+     (head title)
      [:body
       (navbar)
       [:div {:class "container"}
-       (let [tags (doc-tags parsed)
+       (let [tags (doc-tags first-parse)
              split-tags (when tags (clojure.string/split tags #" "))
-             hiccuped (as-hiccup parsed)
-             paragraphs-parsed (xform-paragraphs hiccuped)
-             links-parsed (xform-links paragraphs-parsed)
-             pre-ify (fn [desc x]
-                       [:div
-                        [:hr]
-                        [:p desc]
-                        [:p [:pre
-                             (-> x
-                                 clojure.pprint/pprint
-                                 with-out-str
-                                 escape-html)]]])
              allbodies [:div
-                        links-parsed
-                        (pre-ify "pre-html:" links-parsed)
-                        (pre-ify "before parsing links:" paragraphs-parsed)
-                        (pre-ify "raw hiccup:" hiccuped)
-                        (pre-ify "raw parse:" parsed)]
+                        with-links
+                        [:hr]
+                        [:div {:class "indent"}
+                         [:p [:em "Intermediate Parses:"]]
+                         [:ul
+                          [:li (pre-ify "raw-text" raw-text)]
+                          [:li (pre-ify "first-parse" first-parse)]
+                          [:li (pre-ify "into-paragraphs" into-paragraphs)]
+                          [:li (pre-ify "with-markup" with-markup)]
+                          [:li (pre-ify "with-links" with-links)]]]]
              date-str (date-str-from-file f)]
          [:div
           ;; FIXME: put date style in style sheet
