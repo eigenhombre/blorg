@@ -123,102 +123,73 @@
                      "The body.\n"))))
 
 
-(defn bparse [& txt] (->> txt
-                          (apply str)
-                          (parses body-parser)))
+(defmacro describe-examples [right-fn left-fn & body]
+  `(describe "Examples"
+     ~@(for [[l r] (partition 2 body)]
+         `(~'it ~l
+            (~'should= (~right-fn ~r) (~left-fn ~l))))))
 
 
-(describe "paragraph parsing"
-  (it "handles a newline by itself"
-    (should= [[:div]] (bparse "\n")))
-  (it "handles a newline before and after a paragraph"
-    (should= [[:div
-               [:p "something\n"]]]
-             (bparse "\nsomething\n")))
-  (it "handles two newlines by themselves"
-    (should= [[:div]]
-             (bparse "\n\n")))
-  (it "handles two trailing newlines"
-    (should= [[:div
-               [:p "something\n"]]]
-             (bparse "something\n\n")))
-  (it "parses a one-line paragraph"
-    (should= [[:div
-               [:p "some text"]]]
-             (bparse "some text")))
-  (it "parses a two-line paragraph"
-    (should= [[:div
-               [:p "some text\nand more text"]]]
-             (bparse "some text\n"
-                     "and more text")))
-  (it "parses two paragraphs"
-    (should= [[:div
-               [:p "paragraph one\n"]
-               [:p "paragraph two\n"]]]
-             (bparse "paragraph one\n\n"
-                     "paragraph two\n")))
-  (it "parses two paragraphs separated w/ several newlines"
-    (should= [[:div
-               [:p "paragraph one\n"]
-               [:p "paragraph two\n"]]]
-             (bparse "paragraph one\n\n\n\n\n"
-                     "paragraph two\n"))))
+(describe-examples vector (partial parses body-parser)
+  "\n"             [:div]
+  "x\n"            [:div [:p "x\n"]]
+  "\n\n"           [:div]
+  "x\n\n"          [:div [:p "x\n"]]
+  "some text"      [:div [:p "some text"]]
+  "x\nmore"        [:div [:p "x\nmore"]]
+  "p1\n\np2\n"     [:div [:p "p1\n"] [:p "p2\n"]]
+  "p1\n\n\n\np2\n" [:div [:p "p1\n"] [:p "p2\n"]])
 
 
-(defn pparse [& txt] (->> txt
-                          (apply str)
-                          (parses paragraph-parser)))
+(describe-examples vector (partial parses paragraph-parser)
+  "stuff"                    ["stuff"]
+  "\nmulti\nline\n"          ["\nmulti\nline\n"]
+  "/italicized stuff/"       [[:em "italicized stuff"]]
+  "/bang!/, he said"         [[:em "bang!"] ", he said"]
+  "Awwww /shucks!/"          ["Awwww " [:em "shucks!"]]
+  "text with just / one slash" ["text with just / one slash"]
+  "I like *bold stuff* better" ["I like " [:strong "bold stuff"] " better"]
+  "/ a * b /"                [[:em " a * b "]]
+  "Visit *http://foo.com*!"  ["Visit " [:strong "http://foo.com"] "!"]
+  "[[a]]"                    [[:link "a"]]
+  "[[http://x.com/y]]"       [[:link "http://x.com/y"]]
+  "Visit [[http://x.com/y]]" ["Visit " [:link "http://x.com/y"]]
+  "[[a][b]]"                 [[:link "a" "b"]]
+  "[[a][b\nc]]"              [[:link "a" "b\nc"]]
+  "x [[a][b]]"               ["x " [:link "a" "b"]]
+  "[[a][b]] x"               [[:link "a" "b"] " x"]
+  "[[a][*b*]]"               [[:link "a" [:strong "b"]]]
+  "*[[a][b]]*"               [[:strong [:link "a" "b"]]]
+  "*x [[a][b]]*"             [[:strong "x " [:link "a" "b"]]])
 
 
-(describe "Italics and Bold Face"
-  (it "Parses a normal word correctly"
-    (should= [["stuff"]]
-             (pparse "stuff")))
-  (it "Handles multiline text"
-    (should= [["\nmulti\nline\n"]]
-             (pparse "\nmulti\n"
-                     "line\n")))
-  (it "parses an italicized word"
-    (should= [[[:em "italicized stuff"]]]
-             (pparse "/italicized stuff/")))
-  (it "handles emphasized text followed by plain text"
-    (should= [[[:em "bang!"] ", he said"]]
-             (pparse "/bang!/, he said")))
-  (it "handles emphasized text prefixed by plain text"
-    (should= [["Awwww " [:em "shucks!"]]]
-             (pparse "Awwww /shucks!/")))
-  (it "Can handle a single /"
-    (should= [["text with just / one slash"]]
-             (pparse "text with just / one slash")))
-  (it "parses a boldfaced word with stuff around it"
-    (should= [["I like " [:strong "bold stuff"] " better"]]
-             (pparse "I like *bold stuff* better")))
-  (it "doesn't choke on http:// inside bold"
-    (should= [["Visit " [:strong "http://foo.com"] "!"]]
-             (pparse "Visit *http://foo.com*!"))))
+(defn- complete-parse-and-transform [txt]
+  (-> txt parse-stages :with-links))
 
 
-(describe "Link parsing"
-  (it "handles a half-link"
-    (should= [[[:link "a"]]]
-             (pparse "[[a]]")))
-  (it "can survive a link with a URL in it"
-    (should= [[[:link "http://x.com/y"]]]
-             (pparse "[[http://x.com/y]]")))
-  (it "can survive text followed by a link with a URL in it"
-    (should= [["Visit " [:link "http://x.com/y"]]]
-             (pparse "Visit [[http://x.com/y]]")))
-  (it "parses a full link"
-    (should= [[[:link "a" "b"]]]
-             (pparse "[[a][b]]")))
-  (it "parses a link with a newline"
-    (should= [[[:link "a" "b\nc"]]]
-             (pparse "[[a][b\nc]]")))
-  (it "handles something extra before a link"
-    (should= [["x "
-               [:link "a" "b"]]]
-             (pparse "x [[a][b]]")))
-  (it "handles something extra after a link"
-    (should= [[[:link "a" "b"]
-               " x"]]
-             (pparse "[[a][b]] x"))))
+;; End-to-end parsing
+(describe-examples (fn [s] [:document [:div s]]) complete-parse-and-transform
+  "word"          [:p "word"]
+  "line\n"        [:p "line\n"]
+  "\nline"        [:p "line"]
+  "\nline\n"      [:p "line\n"]
+  "/italics/"     [:p [:em "italics"]]
+  "/italics/\n"   [:p [:em "italics"] "\n"]
+  "\n/italics/"   [:p [:em "italics"]]
+  "\n/italics/\n" [:p [:em "italics"] "\n"]
+  "in /italics/"  [:p "in " [:em "italics"]]
+  "/em/ rocks"    [:p [:em "em"] " rocks"]
+  "*strong*"      [:p [:strong "strong"]]
+  "*strong*\n"    [:p [:strong "strong"] "\n"]
+  "\n*strong*\n"  [:p [:strong "strong"] "\n"]
+  "[[link]]"      [:p [:a {:href "link"} "link"]]
+  "[[link]]\n"    [:p [:a {:href "link"} "link"] "\n"]
+  "\n[[link]]"    [:p [:a {:href "link"} "link"]]
+  "[[a][b]]"      [:p [:a {:href "a"} "b"]]
+  "[[http://x.com][a normal link]]"
+                  [:p [:a {:href "http://x.com"} "a normal link"]]
+  ;; "[[http://x.com][a link with *bold*]]"
+  ;;                 [:div [:p [:a {:href "http://x.com"}
+  ;;                            "a link with "
+  ;;                            [:strong "bold"]]]]
+                  )

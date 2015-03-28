@@ -5,6 +5,7 @@
 
 (def org-parser
   (parser "document = (section | hdr | comment | body)*
+           orphan = 'word'
            <newline> = '\n'
            <comment> = <#'# [^\n]*\n'>
            hdr = <'#+'> #'[a-zA-Z_]+' <#': *'> #'[^\n]*' <newline>+
@@ -13,7 +14,7 @@
            <starspace> = '*'+ <' '+>
            <non-section-line> = !starspace #'.*\n'
            <body-line> = !section-header !hdr !comment non-section-line
-           body = (body-line)+ !body"))
+           body = (newline? #'[^\n]+' !newline) | ((body-line)+ !body)"))
 
 
 (defn get-last-tag-value [parsed tagname]
@@ -49,14 +50,29 @@
   "
   Parser for things within paragraphs
   "
-  (parser "<D>     = txt
-           <txt>   = (words | em | strong | link)+
-           em      = <'/'> #'[^/]+' <'/'>
-           strong  = <'*'> #'[^\\*]+' <'*'>
-           link    = link1 | link2
-           <link1> = !link2 <'[['> #'(?s)((?!\\]\\]).)*' <']]'>
-           <link2> = <'[['> #'(?s)((?!\\]).)*' <']['> #'(?s)((?!\\]).)*' <']]'>
-           <words> = !'[[' #'(?s)((?!\\*.+\\*)(?!/.+/)(?!\\[\\[).)+'"))
+  (parser "<D>        = txt
+           <txt>      = (nonlink | link)+
+           <nonlink>  = (words | em | strong)+
+           star       = '*'
+           slash      = '/'
+           url        = ('http'|'https') '://' #'(?!\\])\\S+'
+           em         = <slash> #'[^/]+' <slash>
+           <nolnkbld> = #'((?!\\[\\[)[^\\*])+'
+           strong     = <star> (nolnkbld | link)+ <star>
+           link       = link1 | link2
+           ll         = '[['
+           lr         = ']['
+           rr         = ']]'
+           <linkbody> = !strong #'(?s)((?!\\])[^\\*])*'
+           <link1>    = !link2 <ll> linkbody <rr>
+           <link2>    = <ll> linkbody <lr> (linkbody|strong)+ <rr>
+           <words>    = !ll #'(?xs)
+                              ( # Lookaheads:
+                                (?!\\*.+\\*)  # Not a `strong`
+                                (?!/.+/)      # Not an `em`
+                                (?!\\[\\[)    # Not starting a comment
+                                (?!\\]\\])    # Not ending a comment
+                              .)+'"))
 
 
 (defn check-parse [orig parsed]
@@ -93,7 +109,13 @@
               paragraph-parser
               (check-parse z)
               (list* :p)
-              vec))}
+              vec))
+    :h1 (fn [z]
+          (->> z
+               paragraph-parser
+               (check-parse z)
+               (list* :h1)
+               vec))}
    parsed))
 
 
@@ -104,3 +126,15 @@
               [:a {:href a} b]
               [:a {:href a} a]))}
    parsed))
+
+
+(defn parse-stages [raw-text]
+  (let [first-parse (org-parser raw-text)
+        into-paragraphs (as-hiccup first-parse)
+        with-markup (xform-paragraphs into-paragraphs)
+        with-links (xform-links with-markup)]
+    {:raw-text raw-text
+     :first-parse first-parse
+     :into-paragraphs into-paragraphs
+     :with-markup with-markup
+     :with-links with-links}))

@@ -167,18 +167,6 @@
          [:h2 {:font-size "20px"}]))
 
 
-(defn allbodies [raw-text]
-  (let [first-parse (org-parser raw-text)
-        into-paragraphs (as-hiccup first-parse)
-        with-markup (xform-paragraphs into-paragraphs)
-        with-links (xform-links with-markup)]
-    {:raw-text raw-text
-     :first-parse first-parse
-     :into-paragraphs into-paragraphs
-     :with-markup with-markup
-     :with-links with-links}))
-
-
 (defn pre-ify [desc x]
   [:div
    [:a {:id (str "showhide-" desc)
@@ -215,7 +203,7 @@
                 first-parse
                 into-paragraphs
                 with-markup
-                with-links]} (allbodies slurped)
+                with-links]} (parse-stages slurped)
         title (doc-title first-parse)]
     (html5
      {:lang "en"}

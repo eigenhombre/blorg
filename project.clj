@@ -12,6 +12,7 @@
                  [watchtower "0.1.1"]]
   :profiles {:dev {:dependencies [[speclj "3.2.0"]]}}
   :plugins [[speclj "3.2.0"]]
-  :aliases {"autotest" ["spec" "-a"]}
+  :aliases {"autotest" ["spec" "-a"]
+            "autoquiet" ["spec" "--format=progress" "-r" "v"]}
   :test-paths ["spec"]
   :main blorg.core)
