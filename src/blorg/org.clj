@@ -1,5 +1,6 @@
 (ns blorg.org
-  (:require [hiccup.util :refer [escape-html]]
+  (:require [blorg.util :refer [vec*]]
+            [hiccup.util :refer [escape-html]]
             [instaparse.core :refer [parser transform get-failure]]))
 
 
@@ -57,13 +58,13 @@
            slash      = '/'
            url        = ('http'|'https') '://' #'(?!\\])\\S+'
            em         = <slash> #'[^/]+' <slash>
-           <nolnkbld> = #'((?!\\[\\[)[^\\*])+'
+           <nolnkbld> = #'(?s)((?!\\[)[^\\*])+'
            strong     = <star> (nolnkbld | link)+ <star>
            link       = link1 | link2
            ll         = '[['
            lr         = ']['
            rr         = ']]'
-           <linkbody> = !strong #'(?s)((?!\\])[^\\*])*'
+           <linkbody> = !strong #'(?s)((?!\\]|\\*).)*'
            <link1>    = !link2 <ll> linkbody <rr>
            <link2>    = <ll> linkbody <lr> (linkbody|strong)+ <rr>
            <words>    = !ll #'(?xs)
@@ -108,22 +109,20 @@
          (->> z
               paragraph-parser
               (check-parse z)
-              (list* :p)
-              vec))
+              (vec* :p)))
     :h1 (fn [z]
           (->> z
                paragraph-parser
                (check-parse z)
-               (list* :h1)
-               vec))}
+               (vec* :h1)))}
    parsed))
 
 
 (defn xform-links [parsed]
   (transform
-   {:link (fn [& [a b]]
-            (if b
-              [:a {:href a} b]
+   {:link (fn [& [a & rst]]
+            (if (seq rst)
+              (vec* :a {:href a} rst)
               [:a {:href a} a]))}
    parsed))
 

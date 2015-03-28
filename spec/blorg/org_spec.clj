@@ -160,7 +160,8 @@
   "[[a][b]] x"               [[:link "a" "b"] " x"]
   "[[a][*b*]]"               [[:link "a" [:strong "b"]]]
   "*[[a][b]]*"               [[:strong [:link "a" "b"]]]
-  "*x [[a][b]]*"             [[:strong "x " [:link "a" "b"]]])
+  "*x [[a][b]]*"             [[:strong "x " [:link "a" "b"]]]
+  "[[z][link w/ *bold*]]"    [[:link "z" "link w/ " [:strong "bold"]]])
 
 
 (defn- complete-parse-and-transform [txt]
@@ -188,8 +189,6 @@
   "[[a][b]]"      [:p [:a {:href "a"} "b"]]
   "[[http://x.com][a normal link]]"
                   [:p [:a {:href "http://x.com"} "a normal link"]]
-  ;; "[[http://x.com][a link with *bold*]]"
-  ;;                 [:div [:p [:a {:href "http://x.com"}
-  ;;                            "a link with "
-  ;;                            [:strong "bold"]]]]
-                  )
+  "[[http://x.com][a link with *bold*]]"
+                  [:p [:a {:href "http://x.com"}
+                       "a link with " [:strong "bold"]]])

@@ -49,3 +49,9 @@
 
 (defn stripext [s]
   (.substring s 0 (.lastIndexOf s ".")))
+
+
+(defn vec* [& args]
+  (let [l (last args)
+        bl (butlast args)]
+    (vec (concat bl l))))
