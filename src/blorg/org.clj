@@ -4,9 +4,25 @@
             [instaparse.core :refer [parser transform get-failure]]))
 
 
+(defn get-title [txt]
+  (second (re-find #"\#\+TITLE: (.+?)\n" txt)))
+
+
+(defn get-draft [txt]
+  (->> txt
+       (re-find #"\#\+DRAFT: (.+?)\n")
+       second
+       Boolean/valueOf))
+
+
+(defn get-tags [txt]
+  (->> txt
+       (re-find #"\#\+TAGS: (.+?)\n")
+       second))
+
+
 (def org-parser
   (parser "document = (section | hdr | comment | body)*
-           orphan = 'word'
            <newline> = '\n'
            <comment> = <#'# [^\n]*\n'>
            hdr = <'#+'> #'[a-zA-Z_]+' <#': *'> #'[^\n]*' <newline>+

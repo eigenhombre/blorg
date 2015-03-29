@@ -192,3 +192,9 @@
   "[[http://x.com][a link with *bold*]]"
                   [:p [:a {:href "http://x.com"}
                        "a link with " [:strong "bold"]]])
+
+
+(describe-examples identity get-title
+  "#+TITLE: a title\n"          "a title"
+  "#+TITLE: a title\nx\n"       "a title"
+  "yz\n\n#+TITLE: a title\nx\n" "a title")

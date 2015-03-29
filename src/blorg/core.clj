@@ -69,10 +69,9 @@
     (for [f (all-blog-posts)
           :let [link (-> f target-file-name stripdir)
                 slurped (slurp f)
-                parsed (org-parser slurped)
-                extracted-title (doc-title parsed)
-                is-draft? (doc-draft parsed)
-                tags (doc-tags parsed)
+                extracted-title (get-title slurped)
+                is-draft? (get-draft slurped)
+                tags (get-tags slurped)
                 date-str (date-str-from-file f)
                 title (if extracted-title
                         extracted-title
@@ -85,6 +84,7 @@
        [:span {:style (str "padding-left: 30px;"
                            "color: #999;"
                            "font-style: italic;")} tags]])]))
+
 
 
 (defn navbar []
@@ -164,7 +164,11 @@
          [:div.indent {:margin-left "5em"}]
          [:h1.title {:font-size "33px"}]
          [:h1 {:font-size "24px"}]
-         [:h2 {:font-size "20px"}]))
+         [:h2 {:font-size "20px"}]
+         [:span.date {:font-size "15px"
+                      :font-style "italic"
+                      :color "#888"
+                      :padding-left "2em"}]))
 
 
 (defn pre-ify [desc x]
@@ -197,6 +201,21 @@
    [:style (css)]])
 
 
+(defn pagination [f]
+  (let [posts (remove (comp get-draft slurp) (all-blog-posts))
+        ind (.indexOf posts f)
+        prev (if (> ind 0) (nth posts (dec ind)))
+        next (if (< (inc ind) (dec (count posts))) (nth posts (inc ind)))]
+    [:nav
+     [:ul {:class "pagination"}
+      (if prev
+        [:li [:a {:href (target-file-name prev)} "Prev"]]
+        [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
+      (if next
+        [:li [:a {:href (target-file-name next)} "Next"]]
+        [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
+
+
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
         {:keys [raw-text
@@ -219,6 +238,7 @@
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
                         with-links
+                        (pagination f)
                         [:hr]
                         [:div {:class "indent"}
                          [:p [:em "Intermediate Parses:"]]
@@ -230,12 +250,8 @@
                           [:li (pre-ify "with-links" with-links)]]]]
              date-str (date-str-from-file f)]
          [:div
-          ;; FIXME: put date style in style sheet
           [:h1 {:class "title"}
-           title [:span {:style (str "font-size:15px;"
-                                     "font-style:italic;"
-                                     "color:#888;"
-                                     "padding-left:20px;")} date-str]]
+           title [:span {:class "date"} date-str]]
           (when split-tags
             [:p "Tags: " (for [t split-tags]
                            [:button {:class "btn btn-default btn-xs"} t])])
