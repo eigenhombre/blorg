@@ -211,9 +211,15 @@
       (if prev
         [:li [:a {:href (target-file-name prev)} "Prev"]]
         [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
+        [:li [:a {:href "index.html"} "Home"]]
       (if next
         [:li [:a {:href (target-file-name next)} "Next"]]
         [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
+
+
+(defn ^:private as-lines [txt]
+  (-> txt
+      (clojure.string/split #"\n")))
 
 
 (defn prepare-html [f is-index?]
@@ -222,8 +228,12 @@
                 first-parse
                 into-paragraphs
                 with-markup
-                with-links]} (parse-stages slurped)
-        title (doc-title first-parse)]
+                with-links]} {}; (parse-stages slurped)
+        [hdrs body] (split-headers-and-body slurped)
+        no-html (strip-raw-html-tags-for-now body)
+        as-sections (convert-body-to-sections no-html)
+        as-paragraphs (section-bodies-to-paragraphs as-sections)
+        title (get-title slurped)]
     (html5
      {:lang "en"}
      [:meta {:charset "utf-8"}]
@@ -234,20 +244,21 @@
      [:body
       (navbar)
       [:div {:class "container"}
+       (pagination f)
        (let [tags (doc-tags first-parse)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
-                        with-links
+                        as-paragraphs
                         (pagination f)
                         [:hr]
                         [:div {:class "indent"}
                          [:p [:em "Intermediate Parses:"]]
                          [:ul
-                          [:li (pre-ify "raw-text" raw-text)]
-                          [:li (pre-ify "first-parse" first-parse)]
-                          [:li (pre-ify "into-paragraphs" into-paragraphs)]
-                          [:li (pre-ify "with-markup" with-markup)]
-                          [:li (pre-ify "with-links" with-links)]]]]
+                          [:li (pre-ify "raw"
+                                        (-> slurped escape-html as-lines))]
+                          [:li (pre-ify "hdrs" (-> hdrs escape-html as-lines))]
+                          [:li (pre-ify "as-sections" as-sections)]
+                          [:li (pre-ify "as-paragraphs" as-paragraphs)]]]]
              date-str (date-str-from-file f)]
          [:div
           [:h1 {:class "title"}
@@ -265,21 +276,24 @@
 
 
 (defn handle-changed-files [files]
-  (doseq [f (-> files
-                (conj (str blog-dir "/index.org"))
-                set)]
-    (future
-      (try
-        (let [html-name (target-file-name f)
-              is-index? (->> f io/file .getName (= "index.org"))
-              output-contents (prepare-html f is-index?)]
-          (spit html-name output-contents)
-          (println (format "Done with %s (%d bytes)"
-                           html-name
-                           (count output-contents))))
-        (catch Throwable t
-          (printf "ERROR %s: %s%n" f t)
-          (flush)))))
+  (let [remaining (atom (count files))]
+    (doseq [f (-> files
+                  (conj (str blog-dir "/index.org"))
+                  set)]
+      (future
+        (try
+          (let [html-name (target-file-name f)
+                is-index? (->> f io/file .getName (= "index.org"))
+                output-contents (prepare-html f is-index?)]
+            (spit html-name output-contents)
+            (swap! remaining dec)
+            (println (format "Done with %s (%d bytes; %d files remain)"
+                             html-name
+                             (count output-contents)
+                             @remaining)))
+          (catch Throwable t
+            (printf "ERROR %s: %s%n" f t)
+            (flush))))))
   files)
 
 

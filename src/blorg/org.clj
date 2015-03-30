@@ -153,3 +153,64 @@
      :into-paragraphs into-paragraphs
      :with-markup with-markup
      :with-links with-links}))
+
+
+(defn strip-raw-html-tags-for-now [txt]
+  (clojure.string/replace txt #"#\+HTML:.+?\n" ""))
+
+
+(defn split-headers-and-body [txt]
+  (let [r (re-find #"(?x)
+                     (\n*     # Pick up trailing newlines
+                      (?:\#   # Anything starting w/ '#'
+                       (?:    # Not starting with:
+                        (?!\+(?:HTML:|CAPTION|BEGIN|ATTR_HTML))
+                              # Swallow all lines that match
+                        .)+\n*)*)
+                              # Swallow everything else as group 2
+                     ((?s)(?:.+)*)"
+                   txt)]
+    (rest r)))
+
+
+(defn convert-body-to-sections [body]
+  (let [matches
+        (re-seq #"(?x)
+                  (?:
+                   (?:(\*+)\s+(.+)\n)
+                   |
+                   ((?:(?!\*+\s+).*\n)*)
+                  )(?x)"
+                body)]
+    (->> (for [[_ stars hdr body] matches]
+           (if stars
+             [(-> stars
+                  count
+                  ((partial str "h"))
+                  keyword)
+              hdr]
+             body))
+         (remove #{""})
+         (vec* :div))))
+
+
+(defn find-paragraphs [s]
+  (->> s
+       (re-seq #"(?x)
+                 ((?:.+\n?)+)
+                 |
+                 (?:\n{2,})")
+       (map (comp (partial vec* :p) rest))))
+
+
+(defn section-bodies-to-paragraphs [tree]
+  (letfn [(convert-paragraphs-leave-hn [term]
+            (if (string? term)
+              (find-paragraphs term)
+              [term]))]
+    (->> tree
+         (mapcat convert-paragraphs-leave-hn)
+         vec)))
+
+
+(defn linkify [s] (vector s))

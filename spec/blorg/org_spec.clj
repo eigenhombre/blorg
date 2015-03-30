@@ -1,5 +1,6 @@
 (ns blorg.org-spec
   (:require [blorg.org :refer :all]
+            [blorg.util :refer [vec*]]
             [instaparse.core :refer [parses parser]]
             [speclj.core :refer :all]))
 
@@ -198,3 +199,51 @@
   "#+TITLE: a title\n"          "a title"
   "#+TITLE: a title\nx\n"       "a title"
   "yz\n\n#+TITLE: a title\nx\n" "a title")
+
+
+(describe-examples identity split-headers-and-body
+  "#+A\n"                       ["#+A\n" ""]
+  "#+A\n#+B\n"                  ["#+A\n#+B\n" ""]
+  "#+A\nStuff"                  ["#+A\n" "Stuff"]
+  "\n#+A\nStuff"                ["\n#+A\n" "Stuff"]
+  "#+A\n\n#+B\nStuff"           ["#+A\n\n#+B\n" "Stuff"]
+  "#+A\nStuff\nMore\n"          ["#+A\n" "Stuff\nMore\n"]
+  "#+A\n# comment\n#+B\nBody"   ["#+A\n# comment\n#+B\n" "Body"]
+  "#+A\n#+CAPTION: jaz\n\nBody" ["#+A\n" "#+CAPTION: jaz\n\nBody"]
+  "#+Z\n#+BEGIN_SRC bada\nX"    ["#+Z\n" "#+BEGIN_SRC bada\nX"]
+  "#+Z\n#+ATTR_HTML bada\nX"    ["#+Z\n" "#+ATTR_HTML bada\nX"]
+  "#+A\n#+HTML: jaz\n\nBody"    ["#+A\n" "#+HTML: jaz\n\nBody"]
+  "#+A\n#+HTML_HEAD: jaz\n\nX"  ["#+A\n#+HTML_HEAD: jaz\n\n" "X"])
+
+
+(describe-examples #(vec* :div %) convert-body-to-sections
+  "* Sec1\n"                [[:h1 "Sec1"]]
+  "* Sec1\n* Sec2\n"        [[:h1 "Sec1"] [:h1 "Sec2"]]
+  "* Sec1\nX\n"             [[:h1 "Sec1"] "X\n"]
+  "* Sec1\nX\n* Sec2\nY\n"  [[:h1 "Sec1"] "X\n" [:h1 "Sec2"] "Y\n"]
+  "* Sec1\n** Sec1a\nX\n"   [[:h1 "Sec1"] [:h2 "Sec1a"] "X\n"]
+  "* S1\nB1\n** S1a\nB1a\n" [[:h1 "S1"] "B1\n" [:h2 "S1a"] "B1a\n"]
+  "* Sec1\nX\nY\n"          [[:h1 "Sec1"] "X\nY\n"]
+  "NoSection\nL2\n"         ["NoSection\nL2\n"]
+  "*bold* stuff\n* Sec1\n"  ["*bold* stuff\n" [:h1 "Sec1"]])
+
+
+(describe-examples identity find-paragraphs
+  "x"          [[:p "x"]]
+  "x\n"        [[:p "x\n"]]
+  "p1\n\np2"   [[:p "p1\n"] [:p "p2"]]
+  "p1\n\np2\n" [[:p "p1\n"] [:p "p2\n"]])
+
+
+(describe-examples identity section-bodies-to-paragraphs
+  ["x"]                           [[:p "x"]]
+  ["p1\n" "p2\n"]                 [[:p "p1\n"] [:p "p2\n"]]
+  [[:h3 "booyah"]]                [[:h3 "booyah"]]
+  [[:h3 "section"] "p1\n" "p2\n"] [[:h3 "section"] [:p "p1\n"] [:p "p2\n"]]
+  ["p1\n" [:h3 "section"] "p2\n"] [[:p "p1\n"] [:h3 "section"] [:p "p2\n"]])
+
+
+(describe-examples identity linkify
+  "nonlink" ["nonlink"]
+  ;YAH  "[[a][b]]" [[:a {:href "a"} "b"]]
+  )
