@@ -216,7 +216,7 @@
 
 (defn linkify [s]
   (->> s
-       (re-seq #"((?:(?!\[\[).)+)?(?:\[\[(.+?)\]\[(.+?)\]\])?")
+       (re-seq #"(?s)((?:(?!\[\[).)+)?(?:\[\[(.+?)\]\[(.+?)\]\])?")
        (remove (partial every? empty?))
        (mapcat (fn [[_ before lnk body]]
               (cond

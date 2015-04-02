@@ -244,11 +244,12 @@
 
 
 (describe-examples identity linkify
-  "nonlink" ["nonlink"]
-  "[[a][b]]" [[:a {:href "a"} "b"]]
+  "nonlink"       ["nonlink"]
+  "line1\nline2"  ["line1\nline2"]
+  "[[a][b]]"      [[:a {:href "a"} "b"]]
   "zoop [[a][b]]" ["zoop " [:a {:href "a"} "b"]]
   "[[a][b]] pooz" [[:a {:href "a"} "b"] " pooz"]
-  "x [[a][b]] y" ["x " [:a {:href "a"} "b"] " y"]
+  "x [[a][b]] y"  ["x " [:a {:href "a"} "b"] " y"]
   "x [[a][b]] y [[c][d]] z" ["x "
                              [:a {:href "a"} "b"]
                              " y "
