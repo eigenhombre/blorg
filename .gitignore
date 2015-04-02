@@ -12,6 +12,7 @@
 /classes/
 /lib/
 /target/
+Icon*
 demo/
 pom.xml
 pom.xml.asc

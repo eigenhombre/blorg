@@ -224,15 +224,11 @@
 
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
-        {:keys [raw-text
-                first-parse
-                into-paragraphs
-                with-markup
-                with-links]} {}; (parse-stages slurped)
         [hdrs body] (split-headers-and-body slurped)
         no-html (strip-raw-html-tags-for-now body)
         as-sections (convert-body-to-sections no-html)
         as-paragraphs (section-bodies-to-paragraphs as-sections)
+        linkified (tree-linkify as-paragraphs)
         title (get-title slurped)]
     (html5
      {:lang "en"}
@@ -245,10 +241,10 @@
       (navbar)
       [:div {:class "container"}
        (pagination f)
-       (let [tags (doc-tags first-parse)
+       (let [tags (get-tags slurped)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
-                        as-paragraphs
+                        linkified
                         (pagination f)
                         [:hr]
                         [:div {:class "indent"}
@@ -258,7 +254,8 @@
                                         (-> slurped escape-html as-lines))]
                           [:li (pre-ify "hdrs" (-> hdrs escape-html as-lines))]
                           [:li (pre-ify "as-sections" as-sections)]
-                          [:li (pre-ify "as-paragraphs" as-paragraphs)]]]]
+                          [:li (pre-ify "as-paragraphs" as-paragraphs)]
+                          [:li (pre-ify "linkified" linkified)]]]]
              date-str (date-str-from-file f)]
          [:div
           [:h1 {:class "title"}
