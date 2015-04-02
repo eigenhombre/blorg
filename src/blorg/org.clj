@@ -1,5 +1,6 @@
 (ns blorg.org
   (:require [blorg.util :refer [vec*]]
+            [clojure.walk]
             [hiccup.util :refer [escape-html]]
             [instaparse.core :refer [parser transform get-failure]]))
 
@@ -213,4 +214,20 @@
          vec)))
 
 
-(defn linkify [s] (vector s))
+(defn linkify [s]
+  (->> s
+       (re-seq #"((?:(?!\[\[).)+)?(?:\[\[(.+?)\]\[(.+?)\]\])?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before lnk body]]
+              (cond
+               (not before) [[:a {:href lnk} body]]
+               (not lnk) [before]
+               :else [before [:a {:href lnk} body]])))))
+
+
+(defn tree-linkify [tree]
+  (clojure.walk/postwalk (fn [el]
+                           (if (string? el)
+                             (vec* :span (linkify el))
+                             el))
+                         tree))
