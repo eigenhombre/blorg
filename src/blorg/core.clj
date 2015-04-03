@@ -229,6 +229,7 @@
         as-sections (convert-body-to-sections no-html)
         as-paragraphs (section-bodies-to-paragraphs as-sections)
         linkified (tree-linkify as-paragraphs)
+        boldified (tree-boldify linkified)
         title (get-title slurped)]
     (html5
      {:lang "en"}
@@ -244,7 +245,7 @@
        (let [tags (get-tags slurped)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
-                        linkified
+                        boldified
                         (pagination f)
                         [:hr]
                         [:div {:class "indent"}
@@ -255,7 +256,8 @@
                           [:li (pre-ify "hdrs" (-> hdrs escape-html as-lines))]
                           [:li (pre-ify "as-sections" as-sections)]
                           [:li (pre-ify "as-paragraphs" as-paragraphs)]
-                          [:li (pre-ify "linkified" linkified)]]]]
+                          [:li (pre-ify "linkified" linkified)]
+                          [:li (pre-ify "boldified" boldified)]]]]
              date-str (date-str-from-file f)]
          [:div
           [:h1 {:class "title"}

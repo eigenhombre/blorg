@@ -255,3 +255,11 @@
                              " y "
                              [:a {:href "c"} "d"]
                              " z"])
+
+
+(describe-examples identity boldify
+  "zazza"         ["zazza"]
+  "line1\nline2"  ["line1\nline2"]
+  "*strong*"      [[:strong "strong"]]
+  "good *stuff*"  ["good " [:strong "stuff"]]
+  "*good* stuff"  [[:strong "good"] " stuff"])

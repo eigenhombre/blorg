@@ -225,9 +225,28 @@
                :else [before [:a {:href lnk} body]])))))
 
 
-(defn tree-linkify [tree]
+(defn walk-string-fn [f tree]
   (clojure.walk/postwalk (fn [el]
                            (if (string? el)
-                             (vec* :span (linkify el))
+                             (vec* :span (f el))
                              el))
                          tree))
+
+
+(defn tree-linkify [tree]
+  (walk-string-fn linkify tree))
+
+
+(defn boldify [s]
+  (->> s
+       (re-seq #"(?s)((?:(?!\*).)+)?(?:\*((?:(?!\*).)+?)\*)?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before strong]]
+                 (cond
+                   (not before) [[:strong strong]]
+                   (not strong) [before]
+                   :else [before [:strong strong]])))))
+
+
+(defn tree-boldify [tree]
+  (walk-string-fn boldify tree))
