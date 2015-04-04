@@ -7,10 +7,10 @@
             [clojure.java.io :as io]
             [clojure.pprint]
             [environ.core :refer [env]]
+            [garden.core :as g]
             [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
-            [hiccup.util :refer [escape-html]]
-            [garden.core :as g]))
+            [hiccup.util :refer [escape-html]]))
 
 
 (defn announce-file-changes [files]
@@ -275,24 +275,19 @@
 
 
 (defn handle-changed-files [files]
-  (let [remaining (atom (count files))]
-    (doseq [f (-> files
-                  (conj (str blog-dir "/index.org"))
-                  set)]
-      (future
-        (try
-          (let [html-name (target-file-name f)
-                is-index? (->> f io/file .getName (= "index.org"))
-                output-contents (prepare-html f is-index?)]
-            (spit html-name output-contents)
-            (swap! remaining dec)
-            (println (format "Done with %s (%d bytes; %d files remain)"
-                             html-name
-                             (count output-contents)
-                             @remaining)))
-          (catch Throwable t
-            (printf "ERROR %s: %s%n" f t)
-            (flush))))))
+  (doseq [f (-> files
+                (conj (str blog-dir "/index.org"))
+                set)]
+    (future
+      (try
+        (let [html-name (target-file-name f)
+              is-index? (->> f io/file .getName (= "index.org"))
+              output-contents (prepare-html f is-index?)]
+          (spit html-name output-contents)
+          (println (format "Done with %s" html-name)))
+        (catch Throwable t
+          (printf "ERROR %s: %s%n" f t)
+          (flush)))))
   files)
 
 
