@@ -271,6 +271,7 @@
   "/em/"                           [[:em "em"]]
   "good /stuff/"                   ["good " [:em "stuff"]]
   "/good/ stuff"                   [[:em "good"] " stuff"]
+  "an \"/em quote/\""              ["an \"" [:em "em quote"] "\""]
   "http://foo"                     ["http://foo"]
   "http://bit.ly/simple-made-easy" ["http://bit.ly/simple-made-easy"])
 
@@ -282,3 +283,13 @@
   "a =code="       ["a " [:code "code"]]
   "=code= red"     [[:code "code"] " red"]
   "l1\nl2 =x=\n z" ["l1\nl2 " [:code "x"] "\n z"])
+
+
+(describe-examples identity hr-ify
+  "asdf"     ["asdf"]
+  ;; "a - b"    ["a - b"]
+  ;; "a -- b"   ["a &#x2013            ; b"]
+  ;; "a --- b"  ["a &#x2014; b"]
+  ;; "a ---- b" ["a &#x2014;- b"]
+  ;; "----"     ["&#x2014;-"]
+  "a\n-----\nb\n" ["a\n" [:hr] "\nb\n"])

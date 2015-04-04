@@ -223,6 +223,8 @@
                   (not before) [[:a {:href lnk} body]]
                   (not lnk) [before]
                   :else [before [:a {:href lnk} body]])))))
+
+
 (defn boldify [s]
   (->> s
        (re-seq #"(?s)((?:(?!\*).)+)?(?:\*((?:(?!\*).)+?)\*)?")
@@ -241,7 +243,7 @@
                    (?:
                      (?!
                        (?:
-                         (?<=\s|^)
+                         (?<=\s|^|\")
                          \/
                          ([^\/]+)
                          \/
@@ -251,7 +253,7 @@
                    )+
                  )?
                  (?:
-                   (?<=\s|^)
+                   (?<=\s|^|\")
                    \/
                    ([^\/]+)
                    \/
@@ -290,6 +292,30 @@
                   :else [before [:code code]])))))
 
 
+(defn hr-ify [s]
+  (->> s
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!
+                       (?<=^|\n)
+                       -{5,}
+                     )
+                     .
+                   )+
+                 )?
+                 (
+                   (?<=^|\n)
+                   -{5,}
+                 )?")
+      (remove (partial every? empty?))
+      (mapcat (fn [[_ before hr]]
+                (cond
+                 (not before) [[:hr]]
+                 (not hr) [before]
+                 :else [before [:hr]])))))
+
+
 (defn walk-string-fn
   "
   Walk tree, applying f to each string.  If multiple terms result, put
@@ -310,3 +336,4 @@
 (defn tree-boldify [tree] (walk-string-fn boldify tree))
 (defn tree-emify [tree] (walk-string-fn emify tree))
 (defn tree-code-ify [tree] (walk-string-fn code-ify tree))
+(defn tree-hr-ify [tree] (walk-string-fn hr-ify tree))
