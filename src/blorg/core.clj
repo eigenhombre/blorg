@@ -231,6 +231,7 @@
         linkified (tree-linkify as-paragraphs)
         boldified (tree-boldify linkified)
         emified (tree-emify boldified)
+        code-ified (tree-code-ify emified)
         title (get-title slurped)]
     (html5
      {:lang "en"}
@@ -246,10 +247,10 @@
        (let [tags (get-tags slurped)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
-                        emified
+                        code-ified
                         (pagination f)
                         [:hr]
-                        [:div {:class "indent"}
+                        #_[:div {:class "indent"}
                          [:p [:em "Intermediate Parses:"]]
                          [:ul
                           [:li (pre-ify "raw"
@@ -259,7 +260,8 @@
                           [:li (pre-ify "as-paragraphs" as-paragraphs)]
                           [:li (pre-ify "linkified" linkified)]
                           [:li (pre-ify "boldified" boldified)]
-                          [:li (pre-ify "emified" emified)]]]]
+                          [:li (pre-ify "emified" emified)]
+                          [:li (pre-ify "code-ified" code-ified)]]]]
              date-str (date-str-from-file f)]
          [:div
           [:h1 {:class "title"}

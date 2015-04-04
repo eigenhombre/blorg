@@ -223,28 +223,6 @@
                   (not before) [[:a {:href lnk} body]]
                   (not lnk) [before]
                   :else [before [:a {:href lnk} body]])))))
-
-
-(defn walk-string-fn
-  "
-  Walk tree, applying f to each string.  If multiple terms result, put
-  them inside a :span tag.
-  "
-  [f tree]
-  (clojure.walk/postwalk (fn [el]
-                           (if (string? el)
-                             (let [[r0 & rs :as r] (f el)]
-                               (if rs
-                                 (vec* :span r)
-                                 r0))
-                             el))
-                         tree))
-
-
-(defn tree-linkify [tree]
-  (walk-string-fn linkify tree))
-
-
 (defn boldify [s]
   (->> s
        (re-seq #"(?s)((?:(?!\*).)+)?(?:\*((?:(?!\*).)+?)\*)?")
@@ -254,10 +232,6 @@
                    (not before) [[:strong strong]]
                    (not strong) [before]
                    :else [before [:strong strong]])))))
-
-
-(defn tree-boldify [tree]
-  (walk-string-fn boldify tree))
 
 
 (defn emify [s]
@@ -290,5 +264,49 @@
                    :else [before [:em em]])))))
 
 
-(defn tree-emify [tree]
-  (walk-string-fn emify tree))
+(defn code-ify [s]
+  (->> s
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!
+                       =
+                       (.+?)
+                       =
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   =
+                   (.+?)
+                   =
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before code]]
+                 (cond
+                  (not before) [[:code code]]
+                  (not code) [before]
+                  :else [before [:code code]])))))
+
+
+(defn walk-string-fn
+  "
+  Walk tree, applying f to each string.  If multiple terms result, put
+  them inside a :span tag.
+  "
+  [f tree]
+  (clojure.walk/postwalk (fn [el]
+                           (if (string? el)
+                             (let [[r0 & rs :as r] (f el)]
+                               (if rs
+                                 (vec* :span r)
+                                 r0))
+                             el))
+                         tree))
+
+
+(defn tree-linkify [tree] (walk-string-fn linkify tree))
+(defn tree-boldify [tree] (walk-string-fn boldify tree))
+(defn tree-emify [tree] (walk-string-fn emify tree))
+(defn tree-code-ify [tree] (walk-string-fn code-ify tree))

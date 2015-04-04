@@ -273,3 +273,12 @@
   "/good/ stuff"                   [[:em "good"] " stuff"]
   "http://foo"                     ["http://foo"]
   "http://bit.ly/simple-made-easy" ["http://bit.ly/simple-made-easy"])
+
+
+(describe-examples identity code-ify
+  "aaabbb"         ["aaabbb"]
+  "l1\nl2"         ["l1\nl2"]
+  "=code="         [[:code "code"]]
+  "a =code="       ["a " [:code "code"]]
+  "=code= red"     [[:code "code"] " red"]
+  "l1\nl2 =x=\n z" ["l1\nl2 " [:code "x"] "\n z"])
