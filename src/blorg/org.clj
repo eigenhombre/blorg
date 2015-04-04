@@ -219,16 +219,24 @@
        (re-seq #"(?s)((?:(?!\[\[).)+)?(?:\[\[(.+?)\]\[(.+?)\]\])?")
        (remove (partial every? empty?))
        (mapcat (fn [[_ before lnk body]]
-              (cond
-               (not before) [[:a {:href lnk} body]]
-               (not lnk) [before]
-               :else [before [:a {:href lnk} body]])))))
+                 (cond
+                  (not before) [[:a {:href lnk} body]]
+                  (not lnk) [before]
+                  :else [before [:a {:href lnk} body]])))))
 
 
-(defn walk-string-fn [f tree]
+(defn walk-string-fn
+  "
+  Walk tree, applying f to each string.  If multiple terms result, put
+  them inside a :span tag.
+  "
+  [f tree]
   (clojure.walk/postwalk (fn [el]
                            (if (string? el)
-                             (vec* :span (f el))
+                             (let [[r0 & rs :as r] (f el)]
+                               (if rs
+                                 (vec* :span r)
+                                 r0))
                              el))
                          tree))
 
@@ -250,3 +258,37 @@
 
 (defn tree-boldify [tree]
   (walk-string-fn boldify tree))
+
+
+(defn emify [s]
+  (->> s
+       (re-seq #"(?xs)
+                 (
+                   (?:
+                     (?!
+                       (?:
+                         (?<=\s|^)
+                         \/
+                         ([^\/]+)
+                         \/
+                       )
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   (?<=\s|^)
+                   \/
+                   ([^\/]+)
+                   \/
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before em]]
+                 (cond
+                   (not before) [[:em em]]
+                   (not em) [before]
+                   :else [before [:em em]])))))
+
+
+(defn tree-emify [tree]
+  (walk-string-fn emify tree))

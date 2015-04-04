@@ -263,3 +263,13 @@
   "*strong*"      [[:strong "strong"]]
   "good *stuff*"  ["good " [:strong "stuff"]]
   "*good* stuff"  [[:strong "good"] " stuff"])
+
+
+(describe-examples identity emify
+  "zazza"                          ["zazza"]
+  "line1\nline2"                   ["line1\nline2"]
+  "/em/"                           [[:em "em"]]
+  "good /stuff/"                   ["good " [:em "stuff"]]
+  "/good/ stuff"                   [[:em "good"] " stuff"]
+  "http://foo"                     ["http://foo"]
+  "http://bit.ly/simple-made-easy" ["http://bit.ly/simple-made-easy"])
