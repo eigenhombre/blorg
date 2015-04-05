@@ -1,5 +1,6 @@
 (ns blorg.org
   (:require [blorg.util :refer [vec* selective-walk]]
+            [hiccup.util :refer [escape-html]]
             [clojure.walk]))
 
 
@@ -231,10 +232,37 @@
                   :else [before [:pre {:class (str "lang_" lang)} block]])))))
 
 
+(defn example-ify [txt]
+  (->> txt
+       (re-seq #"(?xs)
+                 (
+                   (?:
+                     (?!
+                       \#\+BEGIN_EXAMPLE\n
+                       .+?
+                       \#\+END_EXAMPLE\n
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   \#\+BEGIN_EXAMPLE\n
+                   (.+?)
+                   \#\+END_EXAMPLE\n
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before block]]
+                 (cond
+                  (not before) [[:pre (escape-html block)]]
+                  (not block) [before]
+                  :else [before [:pre (escape-html block)]])))))
+
+
 (defn tree-linkify [tree] (apply-fn-to-strings linkify tree))
 (defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
 (defn tree-emify [tree] (apply-fn-to-strings emify tree))
 (defn tree-code-ify [tree] (apply-fn-to-strings code-ify tree))
 (defn tree-hr-ify [tree] (apply-fn-to-strings hr-ify tree))
 (defn tree-srcify [tree] (apply-fn-to-strings srcify tree))
+(defn tree-example-ify [tree] (apply-fn-to-strings example-ify tree))
 (defn tree-pars [tree] (apply-fn-to-strings find-paragraphs tree))

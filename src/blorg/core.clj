@@ -238,6 +238,7 @@
                             strip-raw-html-tags-for-now
                             convert-body-to-sections
                             tree-srcify
+                            tree-example-ify
                             tree-pars
                             tree-linkify
                             tree-boldify

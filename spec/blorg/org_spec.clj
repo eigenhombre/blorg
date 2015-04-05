@@ -107,3 +107,14 @@
   "asdf"                            ["asdf"]
   "#+BEGIN_SRC x\n123\n#+END_SRC\n" [[:pre {:class "lang_x"}
                                       "123\n"]])
+
+
+(describe-examples identity example-ify
+  "asdf"                                  ["asdf"]
+  "#+BEGIN_EXAMPLE\n123\n#+END_EXAMPLE\n" [[:pre "123\n"]]
+  "#+BEGIN_EXAMPLE
+<hr>
+<script lang=\"ada\"></script>
+#+END_EXAMPLE\n"                         [[:pre (str "&lt;hr&gt;\n&lt;script "
+                                                     "lang=&quot;ada&quot;&gt;"
+                                                     "&lt;/script&gt;\n")]])
