@@ -209,11 +209,11 @@
     [:nav
      [:ul {:class "pagination"}
       (if prev
-        [:li [:a {:href (target-file-name prev)} "Prev"]]
+        [:li [:a {:href (-> prev target-file-name stripdir)} "Prev"]]
         [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
         [:li [:a {:href "index.html"} "Home"]]
       (if next
-        [:li [:a {:href (target-file-name next)} "Next"]]
+        [:li [:a {:href (-> next target-file-name stripdir)} "Next"]]
         [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
 
 
