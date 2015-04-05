@@ -218,23 +218,32 @@
 
 
 (defn ^:private as-lines [txt]
-  (-> txt
-      (clojure.string/split #"\n")))
+  (clojure.string/split txt #"\n"))
+
+
+(defmacro intermediate-parses [& exprs]
+  [:div {:class "indent"}
+   [:p [:em "Intermediate Parses:"]]
+   (vec* :ul
+         (for [e exprs]
+           `[:li (pre-ify ~(str e) ~e)]))])
 
 
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
+        title (get-title slurped)
         [hdrs body] (split-headers-and-body slurped)
-        no-html (strip-raw-html-tags-for-now body)
-        as-sections (convert-body-to-sections no-html)
-        with-src (tree-srcify as-sections)
-        with-paragraphs (tree-pars with-src)
-        linkified (tree-linkify with-paragraphs)
-        boldified (tree-boldify linkified)
-        emified (tree-emify boldified)
-        code-ified (tree-code-ify emified)
-        hr-ified (tree-hr-ify code-ified)
-        title (get-title slurped)]
+        slurped-lines (-> slurped escape-html as-lines)
+        display-content (-> body
+                            strip-raw-html-tags-for-now
+                            convert-body-to-sections
+                            tree-srcify
+                            tree-pars
+                            tree-linkify
+                            tree-boldify
+                            tree-emify
+                            tree-code-ify
+                            tree-hr-ify)]
     (html5
      {:lang "en"}
      [:meta {:charset "utf-8"}]
@@ -249,31 +258,20 @@
        (let [tags (get-tags slurped)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
-                        hr-ified
+                        display-content
                         (pagination f)
-                        #_[:hr]
-                        #_[:div {:class "indent"}
-                         [:p [:em "Intermediate Parses:"]]
-                         [:ul
-                          [:li (pre-ify "raw"
-                                        (-> slurped escape-html as-lines))]
-                          [:li (pre-ify "as-sections" as-sections)]
-                          [:li (pre-ify "with-src" with-src)]
-                          [:li (pre-ify "with-paragraphs" with-paragraphs)]
-                          [:li (pre-ify "code-ified" code-ified)]
-                          [:li (pre-ify "hr-ified" hr-ified)]]]]
+                        #_(intermediate-parses slurped-lines
+                                             display-content)]
              date-str (date-str-from-file f)]
          [:div
-          [:h1 {:class "title"}
-           title [:span {:class "date"} date-str]]
+          [:h1 {:class "title"} title [:span {:class "date"} date-str]]
           (when split-tags
-            [:p "Tags: " (for [t split-tags]
-                           [:button {:class "btn btn-default btn-xs"} t])])
+            [:p "Tags: "
+             (for [t split-tags]
+               [:button {:class "btn btn-default btn-xs"} t])])
           (if-not is-index?
             allbodies
-            [:div
-             allbodies
-             (make-links)])])]
+            [:div allbodies (make-links)])])]
       (footer)])))
 
 

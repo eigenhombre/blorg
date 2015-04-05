@@ -51,7 +51,31 @@
   (.substring s 0 (.lastIndexOf s ".")))
 
 
-(defn vec* [& args]
+(defn vec*
+  "
+  Like list*, but for vectors.  (vec* :a :b [:c :d]) => [:a :b :c :d].
+  "
+  [& args]
   (let [l (last args)
         bl (butlast args)]
     (vec (concat bl l))))
+
+
+(defn selective-walk
+  "
+  Walk tree recursively, descending into subtrees only when descend?
+  on the subtree is truthy, and transforming elements only when
+  transform? is truthy.
+  "
+  [action descend? transform? form]
+  (let [walk-fn
+        (fn [el]
+          (cond
+           (transform? el) (action el)
+           (and (coll? el)
+                (descend? el)) (selective-walk action descend? transform? el)
+                :else el))]
+    (if (sequential? form)  ;; FIXME: generalize to maps like clojure.walk does?
+      (into (empty form) (map walk-fn form))
+      form)))
+

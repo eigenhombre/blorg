@@ -1,5 +1,5 @@
 (ns blorg.org
-  (:require [blorg.util :refer [vec*]]
+  (:require [blorg.util :refer [vec* selective-walk]]
             [clojure.walk]))
 
 
@@ -26,20 +26,23 @@
   (clojure.string/replace txt #"#\+HTML:.+?\n" ""))
 
 
+(defn ^:private descend? [el]
+  (and (vector? el)
+       (not= :pre (first el))))
+
+
 (defn apply-fn-to-strings
   "
   Walk tree, applying f to each string.  If multiple terms result, put
   them inside a :span tag.
   "
   [f tree]
-  (clojure.walk/postwalk (fn [el]
-                           (if (string? el)
-                             (let [[r0 & rs :as r] (f el)]
-                               (if rs
-                                 (vec* :span r)
-                                 r0))
-                             el))
-                         tree))
+  (let [f (fn [el]
+            (let [[r0 & rs :as r] (f el)]
+              (if rs
+                (vec* :span r)
+                r0)))]
+    (selective-walk f descend? string? tree)))
 
 
 (defn split-headers-and-body [txt]
