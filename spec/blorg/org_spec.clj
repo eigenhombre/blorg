@@ -51,14 +51,6 @@
   "p1\n\np2\n" [[:p "p1\n"] [:p "p2\n"]])
 
 
-(describe-examples identity section-bodies-to-paragraphs
-  ["x"]                           [[:p "x"]]
-  ["p1\n" "p2\n"]                 [[:p "p1\n"] [:p "p2\n"]]
-  [[:h3 "booyah"]]                [[:h3 "booyah"]]
-  [[:h3 "section"] "p1\n" "p2\n"] [[:h3 "section"] [:p "p1\n"] [:p "p2\n"]]
-  ["p1\n" [:h3 "section"] "p2\n"] [[:p "p1\n"] [:h3 "section"] [:p "p2\n"]])
-
-
 (describe-examples identity linkify
   "nonlink"       ["nonlink"]
   "line1\nline2"  ["line1\nline2"]
@@ -109,3 +101,9 @@
   ;; "a ---- b" ["a &#x2014;- b"]
   ;; "----"     ["&#x2014;-"]
   "a\n-----\nb\n" ["a\n" [:hr] "\nb\n"])
+
+
+(describe-examples identity srcify
+  "asdf"                            ["asdf"]
+  "#+BEGIN_SRC x\n123\n#+END_SRC\n" [[:pre {:class "lang_x"}
+                                      "123\n"]])

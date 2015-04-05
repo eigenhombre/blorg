@@ -26,28 +26,54 @@
   (clojure.string/replace txt #"#\+HTML:.+?\n" ""))
 
 
+(defn apply-fn-to-strings
+  "
+  Walk tree, applying f to each string.  If multiple terms result, put
+  them inside a :span tag.
+  "
+  [f tree]
+  (clojure.walk/postwalk (fn [el]
+                           (if (string? el)
+                             (let [[r0 & rs :as r] (f el)]
+                               (if rs
+                                 (vec* :span r)
+                                 r0))
+                             el))
+                         tree))
+
+
 (defn split-headers-and-body [txt]
-  (let [r (re-find #"(?x)
-                     (\n*     # Pick up trailing newlines
-                      (?:\#   # Anything starting w/ '#'
-                       (?:    # Not starting with:
-                        (?!\+(?:HTML:|CAPTION|BEGIN|ATTR_HTML))
-                              # Swallow all lines that match
-                        .)+\n*)*)
-                              # Swallow everything else as group 2
-                     ((?s)(?:.+)*)"
-                   txt)]
-    (rest r)))
+  (let [[_ & rs]
+        (re-find #"(?x)
+                   (\n*     # Pick up trailing newlines
+                    (?:\#   # Anything starting w/ '#'
+                     (?:    # Not starting with:
+                      (?!\+(?:HTML:|CAPTION|BEGIN|ATTR_HTML))
+                            # Swallow all lines that match
+                      .)+\n*)*)
+                            # Swallow everything else as group 2
+                   ((?s)(?:.+)*)"
+                        txt)]
+    rs))
 
 
 (defn convert-body-to-sections [body]
   (let [matches
         (re-seq #"(?x)
                   (?:
-                   (?:(\*+)\s+(.+)\n)
-                   |
-                   ((?:(?!\*+\s+).*\n)*)
-                  )(?x)"
+                    (?:
+                      (\*+)
+                      \s+
+                      (.+)
+                      \n
+                    )|
+                    (
+                      (?:
+                        (?!\*+\s+)
+                        .*\n
+                      )*
+                    )
+                  )"
                 body)]
     (->> (for [[_ stars hdr body] matches]
            (if stars
@@ -68,16 +94,6 @@
                  |
                  (?:\n{2,})")
        (map (comp (partial vec* :p) rest))))
-
-
-(defn section-bodies-to-paragraphs [tree]
-  (letfn [(convert-paragraphs-leave-hn [term]
-            (if (string? term)
-              (find-paragraphs term)
-              [term]))]
-    (->> tree
-         (mapcat convert-paragraphs-leave-hn)
-         vec)))
 
 
 (defn linkify [s]
@@ -182,24 +198,40 @@
                  :else [before [:hr]])))))
 
 
-(defn walk-string-fn
-  "
-  Walk tree, applying f to each string.  If multiple terms result, put
-  them inside a :span tag.
-  "
-  [f tree]
-  (clojure.walk/postwalk (fn [el]
-                           (if (string? el)
-                             (let [[r0 & rs :as r] (f el)]
-                               (if rs
-                                 (vec* :span r)
-                                 r0))
-                             el))
-                         tree))
+(defn srcify [txt]
+  (->> txt
+       (re-seq #"(?xs)
+                 (
+                   (?:
+                     (?!
+                       \#\+BEGIN_SRC\s+
+                       \S+
+                       \n
+                       .+?
+                       \#\+END_SRC\n
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   \#\+BEGIN_SRC\s+
+                   (\S+)
+                   \n
+                   (.+?)
+                   \#\+END_SRC\n
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before lang block]]
+                 (cond
+                  (not before) [[:pre {:class (str "lang_" lang)} block]]
+                  (not block) [before]
+                  :else [before [:pre {:class (str "lang_" lang)} block]])))))
 
 
-(defn tree-linkify [tree] (walk-string-fn linkify tree))
-(defn tree-boldify [tree] (walk-string-fn boldify tree))
-(defn tree-emify [tree] (walk-string-fn emify tree))
-(defn tree-code-ify [tree] (walk-string-fn code-ify tree))
-(defn tree-hr-ify [tree] (walk-string-fn hr-ify tree))
+(defn tree-linkify [tree] (apply-fn-to-strings linkify tree))
+(defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
+(defn tree-emify [tree] (apply-fn-to-strings emify tree))
+(defn tree-code-ify [tree] (apply-fn-to-strings code-ify tree))
+(defn tree-hr-ify [tree] (apply-fn-to-strings hr-ify tree))
+(defn tree-srcify [tree] (apply-fn-to-strings srcify tree))
+(defn tree-pars [tree] (apply-fn-to-strings find-paragraphs tree))

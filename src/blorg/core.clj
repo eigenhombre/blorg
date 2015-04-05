@@ -227,8 +227,9 @@
         [hdrs body] (split-headers-and-body slurped)
         no-html (strip-raw-html-tags-for-now body)
         as-sections (convert-body-to-sections no-html)
-        as-paragraphs (section-bodies-to-paragraphs as-sections)
-        linkified (tree-linkify as-paragraphs)
+        with-src (tree-srcify as-sections)
+        with-paragraphs (tree-pars with-src)
+        linkified (tree-linkify with-paragraphs)
         boldified (tree-boldify linkified)
         emified (tree-emify boldified)
         code-ified (tree-code-ify emified)
@@ -256,6 +257,9 @@
                          [:ul
                           [:li (pre-ify "raw"
                                         (-> slurped escape-html as-lines))]
+                          [:li (pre-ify "as-sections" as-sections)]
+                          [:li (pre-ify "with-src" with-src)]
+                          [:li (pre-ify "with-paragraphs" with-paragraphs)]
                           [:li (pre-ify "code-ified" code-ified)]
                           [:li (pre-ify "hr-ified" hr-ified)]]]]
              date-str (date-str-from-file f)]
