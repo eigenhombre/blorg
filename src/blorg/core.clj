@@ -110,12 +110,6 @@
      [:ul
       {:class "nav navbar-nav"}
       [:li
-       {:class "active"}
-       [:a
-        {:href "index.html"}
-        "Home"
-        [:span {:class "sr-only"} "(current)"]]]
-      [:li
        {:class "dropdown"}
        [:a
         {:href "#",
@@ -127,14 +121,30 @@
         [:span {:class "caret"}]]
        [:ul
         {:class "dropdown-menu", :role "menu"}
-        [:li {} [:a {:href "#"} "Lisp"]]
-        [:li {} [:a {:href "#"} "Physics"]]
-        [:li {} [:a {:href "#"} "Python"]]
-        [:li {} [:a {:href "#"} "Clojure"]]
+        [:li [:a {:href "#"} "Lisp"]]
+        [:li [:a {:href "#"} "Physics"]]
+        [:li [:a {:href "#"} "Python"]]
+        [:li [:a {:href "#"} "Clojure"]]
         [:li {:class "divider"}]
-        [:li {} [:a {:href "#"} "Art"]]
+        [:li [:a {:href "#"} "Art"]]
         [:li {:class "divider"}]
-        [:li {} [:a {:href "#"} "Writing"]]]]]
+        [:li [:a {:href "#"} "Writing"]]]]]
+     [:ul
+      {:class "nav navbar-nav"}
+      [:li
+       {:class "dropdown"}
+       [:a
+        {:href "#",
+         :class "dropdown-toggle",
+         :data-toggle "dropdown",
+         :role "button",
+         :aria-expanded "false"}
+        "Links"
+        [:span {:class "caret"}]]
+       [:ul
+        {:class "dropdown-menu", :role "menu"}
+        [:li [:a {:href "https://github.com/eigenhombre"} "GitHub"]]
+        [:li [:a {:href "http://twitter.com/eigenhombre"} "Twitter"]]]]]
      [:form
       {:class "navbar-form navbar-left", :role "search"}
       [:div
@@ -144,7 +154,7 @@
       [:button {:type "submit", :class "btn btn-default"} "Submit"]]
      [:ul
       {:class "nav navbar-nav navbar-right"}
-      [:li {} [:a {:href "#"} "About"]]]]]])
+      [:li [:a {:href "about.html"} "About"]]]]]])
 
 
 (defn footer []
@@ -161,6 +171,14 @@
                        :font-size "13px"
                        :font-style "italic"
                        :color "#666"}]
+         [:code {:color "#6B464F"
+                 :background-color "#FCFCFC"}]
+         [:pre.lang_bash {:background-color "#FFFCFA"}]
+         [:pre.lang_clojure {:background-color "#F9FFFE"}]
+         [:pre.lang_python {:background-color "#FFFAFA"}]
+         [:body {:font-size "16px"}]
+         [:.container {:max-width "800px"
+                       :margin-left "11.5rem"}]
          [:div.indent {:margin-left "5em"}]
          [:h1.title {:font-size "33px"}]
          [:h1 {:font-size "24px"}]
@@ -272,8 +290,8 @@
                [:button {:class "btn btn-default btn-xs"} t])])
           (if-not is-index?
             allbodies
-            [:div allbodies (make-links)])])]
-      (footer)])))
+            [:div allbodies (make-links)])])
+       (footer)]])))
 
 
 
