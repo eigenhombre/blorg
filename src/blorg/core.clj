@@ -139,19 +139,18 @@
          :data-toggle "dropdown",
          :role "button",
          :aria-expanded "false"}
-        "Links"
+        "Contact"
         [:span {:class "caret"}]]
        [:ul
         {:class "dropdown-menu", :role "menu"}
         [:li [:a {:href "https://github.com/eigenhombre"} "GitHub"]]
-        [:li [:a {:href "http://twitter.com/eigenhombre"} "Twitter"]]]]]
-     [:form
-      {:class "navbar-form navbar-left", :role "search"}
-      [:div
-       {:class "form-group"}
-       [:input
-        {:type "text", :class "form-control", :placeholder "Search"}]]
-      [:button {:type "submit", :class "btn btn-default"} "Submit"]]
+        [:li [:a {:href "http://twitter.com/eigenhombre"} "Twitter"]]
+        [:li [:a {:href (str "http://pgp.mit.edu/pks/lookup?op=vindex&"
+                             "search=0x244DD67CD7276AB4")} "GPG Key"]]
+        [:li [:a {:href "mailto:eigenhombre@gmail.com"} "Email"]]]]]
+     [:ul
+      {:class "nav navbar-nav"}
+      [:li [:a {:href "#"} "RSS"]]]
      [:ul
       {:class "nav navbar-nav navbar-right"}
       [:li [:a {:href "about.html"} "About"]]]]]])
