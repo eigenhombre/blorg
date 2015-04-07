@@ -81,6 +81,7 @@
 
 (defn make-links []
   (html
+   [:h2 "Blog Posts"]
    [:ul {:class "list-group"}
     (for [f (all-blog-posts)
           :let [link (-> f target-html-file-name stripdir)
@@ -170,7 +171,7 @@
       {:class "nav navbar-nav"}
       [:li [:a {:href "#"} "RSS"]]]
      [:ul
-      {:class "nav navbar-nav navbar-right"}
+      {:class "nav navbar-nav"}
       [:li [:a {:href "about.html"} "About"]]]]]])
 
 
