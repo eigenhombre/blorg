@@ -54,6 +54,7 @@
 (describe-examples identity linkify
   "nonlink"       ["nonlink"]
   "line1\nline2"  ["line1\nline2"]
+  "[[a]]"         ["[[a]]"]  ;; it leaves 'caption' style links alone
   "[[a][b]]"      [[:a {:href "a"} "b"]]
   "zoop [[a][b]]" ["zoop " [:a {:href "a"} "b"]]
   "[[a][b]] pooz" [[:a {:href "a"} "b"] " pooz"]
@@ -63,6 +64,22 @@
                              " y "
                              [:a {:href "c"} "d"]
                              " z"])
+
+
+(describe-examples identity captionify
+  "nonlink"       ["nonlink"]
+  "line1\nline2"  ["line1\nline2"]
+  "[[a]]"         [[:a {:href "a"} [:img {:src "a" :class "caption"}]]]
+  "zoop [[a]]"    ["zoop " [:a {:href "a"} [:img {:src "a" :class "caption"}]]]
+  "[[a]] pooz"    [[:a {:href "a"} [:img {:src "a" :class "caption"}]] " pooz"]
+  "x [[b]] y"     ["x " [:a {:href "b"}
+                         [:img {:src "b" :class "caption"}]] " y"]
+  "x [[a]] y [[b]] z"
+                  ["x "
+                   [:a {:href "a"} [:img {:src "a" :class "caption"}]]
+                   " y "
+                   [:a {:href "b"} [:img {:src "b" :class "caption"}]]
+                   " z"])
 
 
 (describe-examples identity boldify

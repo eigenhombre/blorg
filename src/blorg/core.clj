@@ -194,6 +194,7 @@
          [:pre.lang_clojure {:background-color "#F9FFFE"}]
          [:pre.lang_python {:background-color "#FFFAFA"}]
          [:body {:font-size "16px"}]
+         [:img.caption {:max-width "100%"}]
          [:.container {:max-width "800px"
                        :margin-left "11.5rem"}]
          [:div.indent {:margin-left "5em"}]
@@ -276,6 +277,7 @@
                             tree-example-ify
                             tree-pars
                             tree-linkify
+                            tree-captionify
                             tree-boldify
                             tree-emify
                             tree-code-ify
@@ -297,6 +299,7 @@
                         display-content
                         (pagination f)
                         #_(intermediate-parses slurped-lines
+                                             ppp-content
                                              display-content)]
              date-str (date-str-from-file f)]
          [:div
@@ -349,9 +352,9 @@
 
 
 ;; ;; ;;; REMOVE BEFORE LEIN OR JAR:
-;; (doseq [d [output-dir output-img-dir output-html-dir]]
-;;   (-> d io/file .mkdir))
-;; (->> (concat (all-org-files) (all-img-files))
-;;      display-file-changes
-;;      handle-changed-files)
-;; :ok
+(doseq [d [output-dir output-img-dir output-html-dir]]
+  (-> d io/file .mkdir))
+(->> (concat (all-org-files) (all-img-files))
+     display-file-changes
+     handle-changed-files)
+:ok

@@ -100,9 +100,48 @@
        (map (comp (partial vec* :p) rest))))
 
 
-(defn linkify [s]
+(defn captionify [s]
   (->> s
-       (re-seq #"(?s)((?:(?!\[\[).)+)?(?:\[\[(.+?)\]\[(.+?)\]\])?")
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!\[\[)
+                     .
+                   )+
+                 )?
+                 (?:
+                   \[\[
+                   (.+?)
+                   \]\]
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before img]]
+                 (cond
+                   (not before) [[:a {:href img} [:img {:src img
+                                                        :class "caption"}]]]
+                  (not img) [before]
+                  :else [before [:a {:href img} [:img {:src img
+                                                       :class "caption"}]]])))))
+
+
+(defn linkify [s]
+    (->> s
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!
+                       \[\[.+?\]\[.+?\]\]
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   \[\[
+                   (.+?)
+                   \]\[
+                   (.+?)
+                   \]\]
+                 )?")
        (remove (partial every? empty?))
        (mapcat (fn [[_ before lnk body]]
                  (cond
@@ -113,7 +152,23 @@
 
 (defn boldify [s]
   (->> s
-       (re-seq #"(?s)((?:(?!\*).)+)?(?:\*((?:(?!\*).)+?)\*)?")
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!\*)
+                     .
+                   )+
+                 )?
+                 (?:
+                   \*
+                   (
+                     (?:
+                       (?!\*)
+                       .
+                     )+?
+                   )
+                   \*
+                 )?")
        (remove (partial every? empty?))
        (mapcat (fn [[_ before strong]]
                  (cond
@@ -259,6 +314,7 @@
 
 
 (defn tree-linkify [tree] (apply-fn-to-strings linkify tree))
+(defn tree-captionify [tree] (apply-fn-to-strings captionify tree))
 (defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
 (defn tree-emify [tree] (apply-fn-to-strings emify tree))
 (defn tree-code-ify [tree] (apply-fn-to-strings code-ify tree))
