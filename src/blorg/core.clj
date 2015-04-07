@@ -40,15 +40,31 @@
 
 ;; FIXME make configurable
 (def output-dir "/tmp/blorg")
-(def blog-dir (-> :home env (str "/Dropbox/org/blog/src")))
+(def output-img-dir (str output-dir "/images"))
+(def output-html-dir (str output-dir "/html"))
+(def blog-dir (-> :home env (str "/Dropbox/org/blog")))
+(def blog-src-dir (str blog-dir "/src"))
+(def blog-img-dir (str blog-dir "/images"))
 
 
-(defn- target-file-name [fname]
-  (str output-dir "/" (stripext (.getName (io/file fname))) ".html"))
+(defn- target-html-file-name [fname]
+  (str output-html-dir "/" (stripext (.getName (io/file fname))) ".html"))
+
+
+(defn- target-image-file-name [fname]
+  (str output-img-dir "/" (.getName (io/file fname))))
+
+
+(defn all-img-files []
+  (->> blog-img-dir
+       io/file
+       .listFiles
+       (remove #(.startsWith (.getName %) "."))
+       (map #(.getAbsolutePath %))))
 
 
 (defn all-org-files [& [filter-name-regex]]
-  (->> blog-dir
+  (->> blog-src-dir
        io/file
        .listFiles
        (remove #(.startsWith (.getName %) "."))
@@ -67,7 +83,7 @@
   (html
    [:ul {:class "list-group"}
     (for [f (all-blog-posts)
-          :let [link (-> f target-file-name stripdir)
+          :let [link (-> f target-html-file-name stripdir)
                 slurped (slurp f)
                 extracted-title (get-title slurped)
                 is-draft? (get-draft slurped)
@@ -117,18 +133,20 @@
          :data-toggle "dropdown",
          :role "button",
          :aria-expanded "false"}
-        "Tags"
+        "Topics"
         [:span {:class "caret"}]]
        [:ul
         {:class "dropdown-menu", :role "menu"}
+        [:li [:a {:href "#"} "Clojure"]]
         [:li [:a {:href "#"} "Lisp"]]
         [:li [:a {:href "#"} "Physics"]]
         [:li [:a {:href "#"} "Python"]]
-        [:li [:a {:href "#"} "Clojure"]]
         [:li {:class "divider"}]
         [:li [:a {:href "#"} "Art"]]
         [:li {:class "divider"}]
-        [:li [:a {:href "#"} "Writing"]]]]]
+        [:li [:a {:href "#"} "South Pole"]]
+        [:li {:class "divider"}]
+        [:li [:a {:href "#"} "Other Writing"]]]]]
      [:ul
       {:class "nav navbar-nav"}
       [:li
@@ -226,11 +244,11 @@
     [:nav
      [:ul {:class "pagination"}
       (if prev
-        [:li [:a {:href (-> prev target-file-name stripdir)} "Prev"]]
+        [:li [:a {:href (-> prev target-html-file-name stripdir)} "Prev"]]
         [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
         [:li [:a {:href "index.html"} "Home"]]
       (if next
-        [:li [:a {:href (-> next target-file-name stripdir)} "Next"]]
+        [:li [:a {:href (-> next target-html-file-name stripdir)} "Next"]]
         [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
 
 
@@ -293,14 +311,13 @@
        (footer)]])))
 
 
-
 (defn handle-changed-files [files]
-  (doseq [f (-> files
-                (conj (str blog-dir "/index.org"))
+  (doseq [f (-> (filter #(.endsWith % ".org") files)
+                (conj (str blog-src-dir "/index.org"))
                 set)]
     (future
       (try
-        (let [html-name (target-file-name f)
+        (let [html-name (target-html-file-name f)
               is-index? (->> f io/file .getName (= "index.org"))
               output-contents (prepare-html f is-index?)]
           (spit html-name output-contents)
@@ -308,11 +325,16 @@
         (catch Throwable t
           (printf "ERROR %s: %s%n" f t)
           (flush)))))
+  (doseq [f (filter is-image-file files)]
+    (let [target (io/file (target-image-file-name f))]
+      (when-not (.exists target)
+        (println (format "COPY IMG %s -> %s\n" f (.getName target)))
+        (io/copy (io/file f) target))))
   files)
 
 
 (defn watch-directories []
-  (start-watcher [blog-dir]
+  (start-watcher [blog-src-dir blog-img-dir]
                  (comp announce-file-changes
                        display-file-changes
                        handle-changed-files
@@ -320,16 +342,16 @@
 
 
 (defn -main [& _]
-  (-> output-dir
-      io/file
-      .mkdir)
+  (doseq [d [output-dir output-img-dir output-html-dir]]
+    (-> d io/file .mkdir))
   (watch-directories)
   (wait-forever))
 
 
-;;; REMOVE BEFORE LEIN OR JAR:
-;; (-> (all-org-files)
-;;     announce-file-changes
-;;     display-file-changes
-;;     handle-changed-files)
+;; ;; ;;; REMOVE BEFORE LEIN OR JAR:
+;; (doseq [d [output-dir output-img-dir output-html-dir]]
+;;   (-> d io/file .mkdir))
+;; (->> (concat (all-org-files) (all-img-files))
+;;      display-file-changes
+;;      handle-changed-files)
 ;; :ok

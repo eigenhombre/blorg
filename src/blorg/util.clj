@@ -51,6 +51,19 @@
   (.substring s 0 (.lastIndexOf s ".")))
 
 
+(defn fileext [s]
+  (let [i (.lastIndexOf s ".")]
+    (when (pos? i)
+      (.substring s (.lastIndexOf s ".") (count s)))))
+
+
+(defn is-image-file [f]
+  (some->> f
+           fileext
+           clojure.string/lower-case
+           (contains? #{".img" ".png" ".jpg" ".jpeg" ".gif"})))
+
+
 (defn vec*
   "
   Like list*, but for vectors.  (vec* :a :b [:c :d]) => [:a :b :c :d].
