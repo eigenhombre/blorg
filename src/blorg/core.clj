@@ -143,7 +143,7 @@
         [:li [:a {:href "#"} "Physics"]]
         [:li [:a {:href "#"} "Python"]]
         [:li {:class "divider"}]
-        [:li [:a {:href "#"} "Art"]]
+        [:li [:a {:href "art.html"} "Art"]]
         [:li {:class "divider"}]
         [:li [:a {:href "#"} "South Pole"]]
         [:li {:class "divider"}]
@@ -293,12 +293,12 @@
      [:body
       (navbar)
       [:div {:class "container"}
-       (pagination f)
+       (when-not is-index? (pagination f))
        (let [tags (get-tags slurped)
              split-tags (when tags (clojure.string/split tags #" "))
              allbodies [:div
                         display-content
-                        (pagination f)
+                        (when-not is-index? (pagination f))
                         #_(intermediate-parses slurped-lines
                                              ppp-content
                                              display-content)]
