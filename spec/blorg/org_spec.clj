@@ -113,6 +113,7 @@
 (describe-examples identity strike-ify
   "aabb"           ["aabb"]
   "l1\nl2"         ["l1\nl2"]
+  "1 + 2 + 3"      ["1 + 2 + 3"]
   "+strike+"       [[:strike "strike"]]
   "a +strike+"     ["a " [:strike "strike"]]
   "+strike+ me"   [[:strike "strike"] " me"]
