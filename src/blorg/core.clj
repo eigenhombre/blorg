@@ -284,6 +284,7 @@
                             tree-boldify
                             tree-emify
                             tree-code-ify
+                            tree-strike-ify
                             tree-hr-ify)]
     (html5
      {:lang "en"}

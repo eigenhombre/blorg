@@ -233,6 +233,32 @@
                   :else [before [:code code]])))))
 
 
+(defn strike-ify [s]
+    (->> s
+       (re-seq #"(?sx)
+                 (
+                   (?:
+                     (?!
+                       \+
+                       (.+?)
+                       \+
+                     )
+                     .
+                   )+
+                 )?
+                 (?:
+                   \+
+                   (.+?)
+                   \+
+                 )?")
+       (remove (partial every? empty?))
+       (mapcat (fn [[_ before strike]]
+                 (cond
+                  (not before) [[:strike strike]]
+                  (not strike) [before]
+                  :else [before [:strike strike]])))))
+
+
 (defn hr-ify [s]
   (->> s
        (re-seq #"(?sx)
@@ -318,7 +344,10 @@
 (defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
 (defn tree-emify [tree] (apply-fn-to-strings emify tree))
 (defn tree-code-ify [tree] (apply-fn-to-strings code-ify tree))
+(defn tree-strike-ify [tree] (apply-fn-to-strings strike-ify tree))
 (defn tree-hr-ify [tree] (apply-fn-to-strings hr-ify tree))
 (defn tree-srcify [tree] (apply-fn-to-strings srcify tree))
 (defn tree-example-ify [tree] (apply-fn-to-strings example-ify tree))
 (defn tree-pars [tree] (apply-fn-to-strings find-paragraphs tree))
+
+

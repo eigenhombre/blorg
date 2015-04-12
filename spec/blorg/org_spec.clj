@@ -110,6 +110,15 @@
   "l1\nl2 =x=\n z" ["l1\nl2 " [:code "x"] "\n z"])
 
 
+(describe-examples identity strike-ify
+  "aabb"           ["aabb"]
+  "l1\nl2"         ["l1\nl2"]
+  "+strike+"       [[:strike "strike"]]
+  "a +strike+"     ["a " [:strike "strike"]]
+  "+strike+ me"   [[:strike "strike"] " me"]
+  "l1\nl2 +x+\n z" ["l1\nl2 " [:strike "x"] "\n z"])
+
+
 (describe-examples identity hr-ify
   "asdf"     ["asdf"]
   ;; "a - b"    ["a - b"]
