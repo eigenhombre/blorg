@@ -244,7 +244,7 @@
   (let [posts (remove (comp get-draft slurp) (all-blog-posts))
         ind (.indexOf posts f)
         prev (if (> ind 0) (nth posts (dec ind)))
-        next (if (< (inc ind) (dec (count posts))) (nth posts (inc ind)))]
+        next (if (< ind (dec (count posts))) (nth posts (inc ind)))]
     [:nav
      [:ul {:class "pagination"}
       (if prev
