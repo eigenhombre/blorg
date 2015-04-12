@@ -120,7 +120,8 @@
       [:span {:class "icon-bar"}]
       [:span {:class "icon-bar"}]
       [:span {:class "icon-bar"}]]
-     [:a {:class "navbar-brand", :href "index.html"} "johnj.com"]]
+     [:a {:class "navbar-brand", :href "index.html"}
+      [:span {:class "palegrey"} "johnj.com"]]]
     [:div
      {:class "collapse navbar-collapse",
       :id "bs-example-navbar-collapse-1"}
@@ -195,6 +196,7 @@
          [:pre.lang_clojure {:background-color "#F9FFFE"}]
          [:pre.lang_python {:background-color "#FFFAFA"}]
          [:body {:font-size "16px"}]
+         [:.palegrey {:color "rgb(218, 218, 218)"}]
          [:img.caption {:max-width "100%"}]
          [:.container {:max-width "800px"
                        :margin-left "11.5rem"}]
@@ -300,7 +302,6 @@
                         display-content
                         (when-not is-index? (pagination f))
                         #_(intermediate-parses slurped-lines
-                                             ppp-content
                                              display-content)]
              date-str (date-str-from-file f)]
          [:div
