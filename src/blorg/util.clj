@@ -35,6 +35,12 @@
       (file-creation-date filename)))
 
 
+(defn year-from-file [filename]
+  (->> filename
+       file-date-str
+       (tfmt/unparse (tfmt/formatter "yyyy"))))
+
+
 (defn date-str-from-file [filename]
   (->> filename
        file-date-str

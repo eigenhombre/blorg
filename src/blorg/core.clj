@@ -176,10 +176,13 @@
       [:li [:a {:href "about.html"} "About"]]]]]])
 
 
-(defn footer []
+(defn footer [postyear]
   [:div {:class "footer"}
    [:p (format "© %s John Jacobsen."
-               (.getYear (now)))]
+               (let [this-year (.getYear (now))]
+                 (if (= (str postyear) (str this-year))
+                   this-year
+                   (str postyear "-" this-year))))]
    [:p (format "Made with %s."
                (html [:a {:href "https://github.com/eigenhombre/blorg"}
                       "blorg"]))]])
@@ -243,14 +246,14 @@
 (defn pagination [f]
   (let [posts (remove (comp get-draft slurp) (all-blog-posts))
         ind (.indexOf posts f)
-        prev (if (> ind 0) (nth posts (dec ind)))
-        next (if (< ind (dec (count posts))) (nth posts (inc ind)))]
+        next (if (> ind 0) (nth posts (dec ind)))
+        prev (if (< ind (dec (count posts))) (nth posts (inc ind)))]
     [:nav
      [:ul {:class "pagination"}
       (if prev
         [:li [:a {:href (-> prev target-html-file-name stripdir)} "Prev"]]
         [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
-        [:li [:a {:href "index.html"} "Home"]]
+      [:li [:a {:href "index.html"} "Home"]]
       (if next
         [:li [:a {:href (-> next target-html-file-name stripdir)} "Next"]]
         [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
@@ -298,7 +301,7 @@
       [:div {:class "container"}
        (when-not is-index? (pagination f))
        (let [tags (get-tags slurped)
-             split-tags (when tags (clojure.string/split tags #" "))
+             split-tags (when tags (clojure.string/split tags #","))
              allbodies [:div
                         display-content
                         (when-not is-index? (pagination f))
@@ -314,7 +317,7 @@
           (if-not is-index?
             allbodies
             [:div allbodies (make-links)])])
-       (footer)]])))
+       (footer (year-from-file f))]])))
 
 
 (defn handle-changed-files [files]
