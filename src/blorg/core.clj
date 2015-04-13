@@ -271,6 +271,25 @@
            `[:li (pre-ify ~(str e) ~e)]))])
 
 
+(defn disqus []
+  [:div [:div {:id "disqus_thread"}]
+   [:script {:type "text/javascript"}
+    "var disqus_shortname = 'eigenhombrecom';
+     (function() {
+       var dsq = document.createElement('script');
+       dsq.type = 'text/javascript';
+       dsq.async = true;
+       dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+       (document.getElementsByTagName('head')[0] ||
+        document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();"]
+   [:noscript "Please enable JavaScript to view the"
+    [:a {:href "http://disqus.com/?ref_noscript"}]
+    "comments powered by Disqus."]
+   [:a {:href "http://disqus.com" :class "dsq-brlink"}
+    "blog comments powered by " [:span {:class "logo-disqus"} "Disqus"]]])
+
+
 (defn prepare-html [f is-index?]
   (let [slurped (slurp f)
         title (get-title slurped)
@@ -317,7 +336,8 @@
           (if-not is-index?
             allbodies
             [:div allbodies (make-links)])])
-       (footer (year-from-file f))]])))
+       (footer (year-from-file f))
+       (disqus)]])))
 
 
 (defn handle-changed-files [files]
