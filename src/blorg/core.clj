@@ -38,9 +38,12 @@
     files))
 
 
-;; FIXME make configurable
+;; FIXME make configurable:
 (def output-dir "/tmp/blorg")
+
+
 (def output-img-dir (str output-dir "/images"))
+(def output-assets-dir (str output-dir "/assets"))
 (def output-html-dir (str output-dir "/html"))
 (def blog-dir (-> :home env (str "/Dropbox/org/blog")))
 (def blog-src-dir (str blog-dir "/src"))
@@ -74,6 +77,22 @@
                   true))
        (filter #(.endsWith % ".org"))
        reverse))
+
+
+(defn create-needed-directories []
+  (doseq [d [output-dir output-img-dir output-html-dir output-assets-dir]]
+    (-> d io/file .mkdir)))
+
+
+(defn get-asset-list []
+  (-> (clojure.java.io/resource "assets")
+      io/file
+      .listFiles))
+
+
+(defn copy-assets []
+  (doseq [f (get-asset-list)]
+    (io/copy f (io/file (str output-assets-dir "/" (.getName f))))))
 
 
 (def all-blog-posts (partial all-org-files date-re))
@@ -188,7 +207,7 @@
                       "blorg"]))]])
 
 
-(defn css []
+(defn gen-css []
   (g/css [:div.footer {:text-align "center"
                        :font-size "13px"
                        :font-style "italic"
@@ -232,16 +251,24 @@
                     desc)]])
 
 
+
+(defn get-assets-by-ext [ext]
+  (get (->> (get-asset-list)
+            (map #(.getName %))
+            (group-by fileext))
+       (str "." ext)))
+
+
 (defn head [title]
-  [:head
-   [:title title]
-   (include-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                     "3.3.4/css/bootstrap.min.css"))
-   (include-js (str "https://ajax.googleapis.com/ajax/libs/jquery/"
-                    "1.11.2/jquery.min.js"))
-   (include-js (str "https://maxcdn.bootstrapcdn.com/bootstrap/"
-                    "3.3.4/js/bootstrap.min.js"))
-   [:style (css)]])
+  (let [css (get-assets-by-ext "css")
+        js (get-assets-by-ext "js")
+        add-asset-dir (partial str "../assets/")
+        includes (concat (mapcat (comp include-css add-asset-dir) css)
+                         (mapcat (comp include-js add-asset-dir) js))]
+    `[:head
+      [:title title]
+      ~@includes
+      [:style ~(gen-css)]]))
 
 
 (defn pagination [f]
@@ -372,15 +399,15 @@
 
 
 (defn -main [& _]
-  (doseq [d [output-dir output-img-dir output-html-dir]]
-    (-> d io/file .mkdir))
+  (create-needed-directories)
+  (copy-assets)
   (watch-directories)
   (wait-forever))
 
 
 ;; ;; ;;; REMOVE BEFORE LEIN OR JAR:
-(doseq [d [output-dir output-img-dir output-html-dir]]
-  (-> d io/file .mkdir))
+(create-needed-directories)
+(copy-assets)
 (->> (concat (all-org-files) (all-img-files))
      display-file-changes
      handle-changed-files)
