@@ -28,7 +28,9 @@
 
 
 (defn ^:private descend? [el]
-  (and (vector? el)
+  (and (coll? el)
+       (not (string? el))
+       (not (map? el))
        (not= :pre (first el))))
 
 
@@ -40,9 +42,10 @@
   [f tree]
   (let [f (fn [el]
             (let [[r0 & rs :as r] (f el)]
-              (if rs
-                (vec* :span r)
-                r0)))]
+              (cond
+                (string? r) r
+                rs (vec* :span r)
+                :else r0)))]
     (selective-walk f descend? string? tree)))
 
 
@@ -343,6 +346,12 @@
                   :else [before [:pre (escape-html block)]])))))
 
 
+(defn dashify [txt]
+  (-> txt
+      (clojure.string/replace #"---" "&#x2014;")
+      (clojure.string/replace #"--" "&#x2013;")))
+
+
 (defn tree-linkify [tree] (apply-fn-to-strings linkify tree))
 (defn tree-captionify [tree] (apply-fn-to-strings captionify tree))
 (defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
@@ -353,5 +362,4 @@
 (defn tree-srcify [tree] (apply-fn-to-strings srcify tree))
 (defn tree-example-ify [tree] (apply-fn-to-strings example-ify tree))
 (defn tree-pars [tree] (apply-fn-to-strings find-paragraphs tree))
-
-
+(defn tree-dashify [tree] (apply-fn-to-strings dashify tree))

@@ -335,7 +335,8 @@
                             tree-emify
                             tree-code-ify
                             tree-strike-ify
-                            tree-hr-ify)]
+                            tree-hr-ify
+                            tree-dashify)]
     (html5
      {:lang "en"}
      [:meta {:charset "utf-8"}]

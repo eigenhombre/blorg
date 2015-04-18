@@ -11,6 +11,7 @@
 
 
 (defn- always [x] true)
+(defn- never [x] false)
 (defn- even-number? [x] (and (number? x) (even? x)))
 (defn- odd-number? [x] (and (number? x) (odd? x)))
 (defn- starts-w-nine? [x] (and (coll? x)
@@ -37,4 +38,16 @@
   (it "allows me to avoid :pre sections of a hiccup parse tree"
     (should= [:p "CAPS" [:pre "not caps"] "CAPS"]
              (selective-walk clojure.string/upper-case starts-w-pre? string?
-                             [:p "caps" [:pre "not caps"] "caps"]))))
+                             [:p "caps" [:pre "not caps"] "caps"])))
+  (it "should directly transform toplevel form if asked to"
+    (should= "UPCASE"
+             (selective-walk clojure.string/upper-case
+                             never
+                             always
+                             "upcase")))
+  (it "shouldn't descend top form if I don't want it to"
+    (should= "locase"
+             (selective-walk clojure.string/upper-case
+                             never
+                             never
+                             "locase"))))

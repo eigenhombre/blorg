@@ -101,6 +101,12 @@
   "http://bit.ly/simple-made-easy" ["http://bit.ly/simple-made-easy"])
 
 
+(describe-examples identity tree-emify
+  "no em part"            "no em part"
+  "xxx /yy/ zzz"          [:span "xxx " [:em "yy"] " zzz"]
+  [:p "gimme /more/ em!"] [:p [:span "gimme " [:em "more"] " em!"]])
+
+
 (describe-examples identity code-ify
   "aaabbb"         ["aaabbb"]
   "l1\nl2"         ["l1\nl2"]
@@ -145,3 +151,17 @@
 #+END_EXAMPLE\n"                         [[:pre (str "&lt;hr&gt;\n&lt;script "
                                                      "lang=&quot;ada&quot;&gt;"
                                                      "&lt;/script&gt;\n")]])
+
+
+(describe-examples identity dashify
+  "aabb" "aabb"
+  "-"    "-"
+  "--"   "&#x2013;"
+  "---"  "&#x2014;"
+  "a--b" "a&#x2013;b")
+
+
+(describe-examples identity tree-dashify
+  "no dashes"             "no dashes"
+  "xxx -- zzz"            "xxx &#x2013; zzz"
+  [:p "xxx -- zzz"]       [:p "xxx &#x2013; zzz"])
