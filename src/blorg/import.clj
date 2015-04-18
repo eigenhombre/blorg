@@ -389,6 +389,11 @@
   (clojure.string/replace s #"__([^_]+)__" "/$1/"))
 
 
+(defn fix-ancient-image-paths [s]
+  (clojure.string/replace
+   s #"\.\./images/jacobsen_pole07_set.+/med/" "../images/"))
+
+
 (defn orgify [p]
   (assoc p :org
          (format "#+TITLE: %s\n#+TAGS: %s\n\n%s\n"
@@ -401,6 +406,7 @@
                      h2
                      h3
                      remove-ps
+                     fix-ancient-image-paths
                      fix-italics
                      imagify-pix
                      orgify-links))))

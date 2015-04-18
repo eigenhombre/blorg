@@ -201,6 +201,7 @@
          [:body {:font-size "16px"}]
          [:.palegrey {:color "rgb(218, 218, 218)"}]
          [:img.caption {:max-width "100%"}]
+         [:img.caption {:max-height "600px"}]
          [:.container {:max-width "800px"
                        :margin-left "11.5rem"}]
          [:div.indent {:margin-left "5em"}]
