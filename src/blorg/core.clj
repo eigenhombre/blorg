@@ -276,12 +276,12 @@
     [:nav
      [:ul {:class "pagination"}
       (if prev
-        [:li [:a {:href (-> prev target-html-file-name stripdir)} "Prev"]]
-        [:li {:class "disabled"} [:a {:href "#"} "Prev"]])
+        [:li [:a {:href (-> prev target-html-file-name stripdir)} "Past"]]
+        [:li {:class "disabled"} [:a {:href "#"} "Past"]])
       [:li [:a {:href "index.html"} "Home"]]
       (if next
-        [:li [:a {:href (-> next target-html-file-name stripdir)} "Next"]]
-        [:li {:class "disabled"} [:a {:href "#"} "Next"]])]]))
+        [:li [:a {:href (-> next target-html-file-name stripdir)} "Future"]]
+        [:li {:class "disabled"} [:a {:href "#"} "Future"]])]]))
 
 
 (defn ^:private as-lines [txt]
