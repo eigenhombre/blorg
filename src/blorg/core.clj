@@ -224,7 +224,8 @@
          [:span.tags {:padding-left "30px"
                       :color "#999"
                       :font-style "italic"}]
-         [:span.link-date {:padding-left "10px"}]
+         [:span.link-date {:padding-left "10px"
+                           :color "#bfa9a9"}]
          [:span.date-in-header {:font-size "15px"
                                 :font-style "italic"
                                 :color "#888"
