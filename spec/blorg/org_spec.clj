@@ -165,3 +165,98 @@
   "no dashes"             "no dashes"
   "xxx -- zzz"            "xxx &#x2013; zzz"
   [:p "xxx -- zzz"]       [:p "xxx &#x2013; zzz"])
+
+
+(describe-examples identity get-plain-lists
+  "a"                     [["a" nil]]
+  "- a\n"                 [[nil "- a\n"]]
+  "a\n- b\n"              [["a\n" "- b\n"]]
+  "a\n- b\nc\n"           [["a\n" "- b\n"]
+                           ["c\n" nil]]
+  "a\n- b\nc\n- d\n"      [["a\n" "- b\n"]
+                           ["c\n" "- d\n"]])
+
+
+(describe-examples identity parse-plain-list
+"
+- a
+"      [:ul [:li "a\n"]]
+"
+- a
+- b
+"      [:ul [:li "a\n"] [:li "b\n"]]
+"
+- a
+  - a1
+"      [:ul [:li "a\n"] [:ul [:li "a1\n"]]]
+"
+- a
+- b
+  - a1
+  - a2
+"      [:ul
+        [:li "a\n"]
+        [:li "b\n"]
+        [:ul
+         [:li "a1\n"]
+         [:li "a2\n"]]]
+"
+- a
+  - a1
+  - a2
+- b
+"      [:ul
+        [:li "a\n"]
+        [:ul
+         [:li "a1\n"]
+         [:li "a2\n"]]
+        [:li "b\n"]]
+"
+- a
+- b
+  - b1
+  - b2
+    - b2a
+- c
+"      [:ul
+        [:li "a\n"]
+        [:li "b\n"]
+        [:ul
+         [:li "b1\n"]
+         [:li "b2\n"]
+         [:ul
+          [:li "b2a\n"]]]
+        [:li "c\n"]]
+"
+- a
+- b
+  - b1
+  - b2
+    - b2a
+  - b3
+"      [:ul
+        [:li "a\n"]
+        [:li "b\n"]
+        [:ul
+         [:li "b1\n"]
+         [:li "b2\n"]
+         [:ul
+          [:li "b2a\n"]]
+         [:li "b3\n"]]]
+;; Don't start new list item w/out intervening newline:
+"- a - b\n" [:ul [:li "a - b\n"]]
+;; Strange pathological minimum case (regression test):
+"   - -- \n" [:ul [:li "-- \n"]]
+)
+
+
+(describe-examples identity tree-listify
+  "a"                     "a"
+  "- a\n"                 [:ul [:li "a\n"]]
+  "a\n- b\n"              [:span "a\n" [:ul [:li "b\n"]]]
+  "a\n- b\nc\n"           [:span "a\n" [:ul [:li "b\n"]] "c\n"]
+  "a\n- b\nc\n- d\n"      [:span
+                           "a\n"
+                           [:ul [:li "b\n"]]
+                           "c\n"
+                           [:ul [:li "d\n"]]])

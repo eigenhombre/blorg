@@ -1,7 +1,8 @@
 (ns blorg.org
   (:require [blorg.util :refer [vec* selective-walk]]
-            [hiccup.util :refer [escape-html]]
-            [clojure.walk]))
+            [clojure.walk]
+            [clojure.zip :as zip]
+            [hiccup.util :refer [escape-html]]))
 
 
 (defn header-value-for [field txt]
@@ -352,6 +353,128 @@
       (clojure.string/replace #"--" "&#x2013;")))
 
 
+(defn get-plain-lists
+  "
+  Get plain lists and surrounding content out of txt.  Defer actual
+  parsing of plain lists.
+  "
+  [txt]
+  (->> txt
+       (re-seq #"(?xs)
+                 (
+                  (?:
+                   (?!
+                    (?<=\n|^)
+                    \ *
+                    -
+                    \ +
+                    [^\n]
+                    +\n
+                    (?:
+                     (?<=\n)
+                     (?:\ *-\ +|\ +)
+                     [^\n]+
+                     \n
+                    )*
+                   )
+                   .
+                  )+
+                 )?
+                 (
+                  (?<=\n|^)
+                  \ *
+                  -
+                  \ +
+                  [^\n]+
+                  \n
+                  (?:
+                   (?<=\n)
+                   (?:\ *-\ +|\ +)
+                   [^\n]+
+                   \n
+                  )*
+                 )?")
+       (map rest)
+       (remove (partial every? empty?))))
+
+
+(defn items-seq-to-tree
+  "
+  Convert seq of [level, content] pairs into a tree using zippers.
+  Assumes deltas are a whole multiple of two for now.
+  "
+  [s]
+  (loop [[[level x] & more] s
+         prev 0
+         ret (-> [:ul] zip/vector-zip zip/down)]
+    (if-not x
+      (zip/root ret)  ;; We're done.
+      ;; ... otherwise, figure out where in tree to insert node:
+      (recur more level
+             (let [delta (/ (- prev level) 2)]
+               (cond
+                 (> level prev) (-> ret
+                                (zip/insert-right [:ul])
+                                zip/right
+                                zip/down
+                                (zip/insert-right [:li x])
+                                zip/right)
+                 (< level prev) (-> ret
+                                (#(last (take (inc delta)
+                                              (iterate zip/up %))))
+                                (zip/insert-right [:li x])
+                                zip/right)
+                 :else ;; Simple case -- same level:
+                 (-> ret
+                     (zip/insert-right [:li x])
+                     zip/right)))))))
+
+
+(defn strip-leading-spaces
+  "
+  Strip leading spaces from every line in input.
+  "
+  [txt]
+  (let [txt-lines (clojure.string/split txt #"\n")
+        spaces-to-strip (->> txt-lines
+                             (map (partial re-find #"^( *)"))
+                             (map (comp count second))
+                             (apply min))]
+    (apply str
+           (interleave
+            (map (comp (partial apply str)
+                       (partial drop spaces-to-strip))
+                 txt-lines)
+            (repeat \newline)))))
+
+
+(defn parse-plain-list [txt]
+  (->> txt
+       strip-leading-spaces
+       (re-seq #"(?xs)
+                 (?<=\n|^)
+                 (\ *)-\ +
+                 (
+                   (?:
+                     (?!(?<=\n|^)\ *-\ )
+                     .
+                   )+
+                 )")
+       (map rest)
+       (map (juxt (comp count first) second))
+       items-seq-to-tree))
+
+
+(defn plain-listify [txt]
+  (->> txt
+       get-plain-lists
+       (mapcat (fn [[before-txt list-txt]]
+                 (cond
+                   (not before-txt) [(parse-plain-list list-txt)]
+                   (not list-txt) [before-txt]
+                   :else [before-txt (parse-plain-list list-txt)])))))
+
+
 (defn tree-linkify [tree] (apply-fn-to-strings linkify tree))
 (defn tree-captionify [tree] (apply-fn-to-strings captionify tree))
 (defn tree-boldify [tree] (apply-fn-to-strings boldify tree))
@@ -363,3 +486,4 @@
 (defn tree-example-ify [tree] (apply-fn-to-strings example-ify tree))
 (defn tree-pars [tree] (apply-fn-to-strings find-paragraphs tree))
 (defn tree-dashify [tree] (apply-fn-to-strings dashify tree))
+(defn tree-listify [tree] (apply-fn-to-strings plain-listify tree))

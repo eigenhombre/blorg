@@ -328,6 +328,7 @@
                             convert-body-to-sections
                             tree-srcify
                             tree-example-ify
+                            tree-listify
                             tree-pars
                             tree-linkify
                             tree-captionify
@@ -406,10 +407,10 @@
   (wait-forever))
 
 
-;; ;; ;;; REMOVE BEFORE LEIN OR JAR:
-(create-needed-directories)
-(copy-assets)
-(->> (concat (all-org-files) (all-img-files))
-     display-file-changes
-     handle-changed-files)
-:ok
+;; ;;; REMOVE BEFORE LEIN OR JAR:
+;; (create-needed-directories)
+;; (copy-assets)
+;; (->> (concat (all-org-files) (all-img-files))
+;;      display-file-changes
+;;      handle-changed-files)
+;; :ok
