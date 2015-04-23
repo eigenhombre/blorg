@@ -25,7 +25,12 @@
 
 
 (defn strip-raw-html-tags-for-now [txt]
-  (clojure.string/replace txt #"#\+HTML:.+?\n" ""))
+  (-> txt
+      (clojure.string/replace #"#\+(?:HTML|ATTR_HTML):.+?\n" "")
+      (clojure.string/replace #"(?sx)
+                                \#\+BEGIN_HTML\s*
+                                .*?
+                                \#\+END_HTML\s*" "")))
 
 
 (defn ^:private descend? [el]

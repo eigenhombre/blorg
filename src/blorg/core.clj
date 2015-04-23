@@ -111,9 +111,9 @@
                         extracted-title
                         (stripdir f))]
           :when (not is-draft?)]
-      [:li {:class "list-group-item"}
+      [:li
        [:a {:href link} title]
-       [:span {:class "date-in-header"} date-str]
+       [:span {:class "link-date"} date-str]
        [:span {:class "tags"} tags]])]))
 
 
@@ -224,11 +224,11 @@
          [:span.tags {:padding-left "30px"
                       :color "#999"
                       :font-style "italic"}]
-         [:span.date-in-header "padding-left: 10px"]
-         [:span.date {:font-size "15px"
-                      :font-style "italic"
-                      :color "#888"
-                      :padding-left "2em"}]))
+         [:span.link-date {:padding-left "10px"}]
+         [:span.date-in-header {:font-size "15px"
+                                :font-style "italic"
+                                :color "#888"
+                                :padding-left "2em"}]))
 
 
 (defn pre-ify [desc x]
@@ -355,7 +355,8 @@
                                              display-content)]
              date-str (date-str-from-file f)]
          [:div
-          [:h1 {:class "title"} title [:span {:class "date"} date-str]]
+          [:h1 {:class "title"}
+           title [:span {:class "date-in-header"} date-str]]
           (when split-tags
             [:p "Tags: "
              (for [t split-tags]
