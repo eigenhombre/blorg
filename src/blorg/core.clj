@@ -122,7 +122,6 @@
                            "font-style: italic;")} tags]])]))
 
 
-
 (defn navbar []
   [:nav
    {:class "navbar navbar-default"}
@@ -249,7 +248,6 @@
                          "});")
                     (str "showhide-" desc)
                     desc)]])
-
 
 
 (defn get-assets-by-ext [ext]
