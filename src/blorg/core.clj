@@ -38,13 +38,11 @@
     files))
 
 
-;; FIXME make configurable:
-(def output-dir "/tmp/blorg")
-
-
+(def output-dir (or (:blorg-home env) "/tmp/blorg"))
 (def output-img-dir (str output-dir "/images"))
 (def output-assets-dir (str output-dir "/assets"))
 (def output-html-dir (str output-dir "/html"))
+;; FIXME: make configurable:
 (def blog-dir (-> :home env (str "/Dropbox/org/blog")))
 (def blog-src-dir (str blog-dir "/src"))
 (def blog-img-dir (str blog-dir "/images"))
@@ -115,11 +113,8 @@
           :when (not is-draft?)]
       [:li {:class "list-group-item"}
        [:a {:href link} title]
-       ;; FIXME: put in style sheet:
-       [:span {:style "padding-left: 10px;"} date-str]
-       [:span {:style (str "padding-left: 30px;"
-                           "color: #999;"
-                           "font-style: italic;")} tags]])]))
+       [:span {:class "date-in-header"} date-str]
+       [:span {:class "tags"} tags]])]))
 
 
 (defn navbar []
@@ -226,6 +221,10 @@
          [:h1.title {:font-size "33px"}]
          [:h1 {:font-size "24px"}]
          [:h2 {:font-size "20px"}]
+         [:span.tags {:padding-left "30px"
+                      :color "#999"
+                      :font-style "italic"}]
+         [:span.date-in-header "padding-left: 10px"]
          [:span.date {:font-size "15px"
                       :font-style "italic"
                       :color "#888"

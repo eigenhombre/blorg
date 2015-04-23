@@ -10,4 +10,3 @@
        (format "say %s")
        (#(clojure.string/split % #" "))
        (apply sh)))
-
