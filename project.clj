@@ -7,6 +7,7 @@
                  [environ "1.0.0"]
                  [garden "1.2.5"]
                  [hiccup "1.0.5"]
+                 [com.flickr4java/flickr4java "2.12"]
                  [org.clojure/clojure "1.6.0"]
                  [watchtower "0.1.1"]]
   :profiles {:dev {:dependencies [[speclj "3.2.0"]]}}
