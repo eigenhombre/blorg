@@ -2,7 +2,7 @@
 
 ... a static site generator using [[http://orgmode.org/][Org Mode]] files as markup.
 
-Work in progress.  Protective eyewear required.
+~~Work in progress.~~  Protective eyewear required.
 
 * Goals
 
